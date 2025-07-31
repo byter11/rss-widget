@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/material_dynamic_neutral10">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft= "6dp"
+        android:paddingRight="6dp" >
+
+        <TextView
+            android:id="@+id/empty_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Loading..."
+            android:textStyle="bold"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:visibility="gone"
+            android:padding="64dp" />
+
+        <ListView
+            android:id="@+id/widget_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="vertical" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btn_refresh"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:background="@drawable/bg_refresh_button"
+        android:src="@android:drawable/ic_popup_sync"
+        android:tint="@android:color/black"
+        android:contentDescription="@string/refresh"
+        android:padding="8dp"
+        android:elevation="4dp"
+        android:scaleType="centerInside" />
+</FrameLayout>

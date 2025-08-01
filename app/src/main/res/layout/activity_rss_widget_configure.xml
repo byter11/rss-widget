@@ -10,14 +10,14 @@
     <com.google.android.material.textview.MaterialTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Configure RSS Widget"
+        android:text="@string/configure_rss_widget"
         android:textAppearance="?attr/textAppearanceHeadline6"
         android:layout_marginBottom="16dp"/>
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="RSS Feed URL"
+        android:hint="@string/rss_feed_url"
         android:layout_marginBottom="8dp">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edit_rss_url"
@@ -44,13 +44,13 @@
         android:id="@+id/switch_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Title"/>
+        android:text="@string/header"/>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/title_input_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="RSS Feed"
+        android:hint="@string/rss_feed"
         android:layout_marginTop="8dp"
         android:visibility="gone">
         <com.google.android.material.textfield.TextInputEditText
@@ -59,6 +59,12 @@
             android:layout_height="wrap_content"
             android:inputType="textCapSentences"/>
     </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switch_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/description"/>
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/label_max_items"
@@ -82,6 +88,6 @@
         android:id="@+id/button_add"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Done"
+        android:text="@string/done"
         android:layout_marginTop="24dp"/>
 </LinearLayout>

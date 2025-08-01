@@ -19,6 +19,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 material-v1120 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 rome = { module = "com.rometools:rome", version.ref = "rome" }
+androidx-core = { group = "androidx.core", name = "core", version = "1.13.1" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

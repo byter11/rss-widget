@@ -1,37 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/material_dynamic_neutral10">
+    android:background="@drawable/material_card_bg"
+    android:theme="@style/Theme.Material3.DynamicColors.DayNight">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft= "6dp"
-        android:paddingRight="6dp" >
+        android:orientation="vertical"
+        android:paddingLeft="6dp"
+        android:paddingRight="6dp">
 
         <TextView
             android:id="@+id/widget_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textStyle="bold"
+            android:gravity="start"
+            android:padding="12dp"
+            android:textColor="?android:attr/colorForeground"
             android:textSize="18sp"
-            android:gravity="center"
-            android:visibility="gone"
-            android:padding="8dp"
-            android:textColor="@android:color/black" />
+            android:textStyle="bold"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/empty_text"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Loading..."
-            android:textStyle="bold"
-            android:textSize="32sp"
             android:gravity="center"
-            android:visibility="gone"
-            android:padding="64dp" />
+            android:padding="64dp"
+            android:text="Loading..."
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
 
         <ListView
             android:id="@+id/widget_list"
@@ -42,15 +44,15 @@
 
     <ImageButton
         android:id="@+id/btn_refresh"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:layout_gravity="top|end"
         android:layout_margin="8dp"
         android:background="@drawable/bg_refresh_button"
-        android:src="@android:drawable/ic_popup_sync"
-        android:tint="@android:color/black"
         android:contentDescription="@string/refresh"
-        android:padding="8dp"
         android:elevation="4dp"
-        android:scaleType="centerInside" />
+        android:padding="8dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_refresh"
+        app:tint="?android:attr/colorBackground" />
 </FrameLayout>

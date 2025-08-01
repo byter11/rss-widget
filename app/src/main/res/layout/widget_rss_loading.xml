@@ -13,7 +13,7 @@
         android:text="Loading..."
         android:textStyle="bold"
         android:textSize="24sp"
-        android:textColor="#D3D3D3"
+        android:textColor="@color/md_theme_light_outline"
         android:gravity="center"
         android:padding="64dp" />
 </LinearLayout>

@@ -5,7 +5,7 @@
     <!-- The solid tag sets the background color. By using a theme attribute
          like `colorSurfaceContainer`, the color will automatically adapt
          to the Material You theme (e.g., light mode, dark mode, etc.). -->
-    <solid android:color="?android:attr/colorBackground" />
+    <solid android:color="?android:attr/colorBackgroundCacheHint" />
 
     <!-- This tag defines the corner radius for the rounded edges.
          You can use a specific dp value or a theme attribute if you've defined one. -->

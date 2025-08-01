@@ -13,6 +13,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textview.MaterialTextView
+import androidx.core.content.edit
 
 class RssWidgetConfigureActivity : Activity() {
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -33,6 +34,7 @@ class RssWidgetConfigureActivity : Activity() {
         val urlInput = findViewById<TextInputEditText>(R.id.edit_rss_url)
         val addButton = findViewById<MaterialButton>(R.id.button_add)
         val switchTitle = findViewById<SwitchMaterial>(R.id.switch_title)
+        val switchDescription = findViewById<SwitchMaterial>(R.id.switch_description)
         val titleInputLayout = findViewById<TextInputLayout>(R.id.title_input_layout)
         val titleEdit = findViewById<TextInputEditText>(R.id.edit_widget_title)
         val slider = findViewById<Slider>(R.id.slider_max_items)
@@ -41,24 +43,21 @@ class RssWidgetConfigureActivity : Activity() {
         val sampleButtonsContainer = findViewById<LinearLayout>(R.id.sample_buttons_container)
         val inflater = LayoutInflater.from(this)
         val samples = listOf(
-            Triple("Hacker News", "https://hnrss.org/frontpage?link=comments&description=0", true),
-            Triple("BBC", "http://feeds.bbci.co.uk/news/rss.xml", true),
-            Triple("NY Times", "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml", true),
-            Triple("Guardian", "https://www.theguardian.com/world/rss", true),
-            Triple("Reddit", "https://www.reddit.com/r/news/.rss", true)
+            Pair("Hacker News", "https://hnrss.org/frontpage?link=comments"),
+            Pair("BBC", "http://feeds.bbci.co.uk/news/rss.xml"),
+            Pair("NY Times", "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"),
+            Pair("Guardian", "https://www.theguardian.com/world/rss"),
+            Pair("Reddit", "https://www.reddit.com/r/news/.rss")
         )
-        samples.forEach { (label, url, isBordered) ->
+
+        samples.forEach { (label, url) ->
             val btn = inflater.inflate(R.layout.item_sample_rss_button, sampleButtonsContainer, false) as MaterialButton
             btn.text = label
             btn.setOnClickListener { urlInput.setText(url) }
-            if (isBordered) {
-                btn.setLines(2)
-                btn.maxLines = 2
-                btn.setStrokeColorResource(android.R.color.darker_gray)
-                btn.strokeWidth = resources.getDimensionPixelSize(R.dimen.sample_button_stroke_width)
-            } else {
-                btn.strokeWidth = 0
-            }
+            btn.setLines(2)
+            btn.maxLines = 2
+            btn.setStrokeColorResource(android.R.color.darker_gray)
+            btn.strokeWidth = resources.getDimensionPixelSize(R.dimen.sample_button_stroke_width)
             sampleButtonsContainer.addView(btn)
         }
 
@@ -77,17 +76,23 @@ class RssWidgetConfigureActivity : Activity() {
             val url = urlInput.text?.toString()?.trim() ?: ""
             val customTitle = if (switchTitle.isChecked) titleEdit.text?.toString()?.trim() else null
             if (url.isNotEmpty()) {
+                val showDescription  = switchDescription.isChecked
                 // Save the URL, title, and maxItems in SharedPreferences
                 val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                prefs.edit().putString(PREF_PREFIX_KEY + appWidgetId, url)
-                    .putString(PREF_PREFIX_KEY + "title_" + appWidgetId, customTitle)
-                    .putInt(PREF_PREFIX_KEY + "max_" + appWidgetId, maxItems)
-                    .apply()
+                prefs.edit {
+                    putString(PREF_PREFIX_KEY + appWidgetId, url)
+                        .putString(PREF_PREFIX_KEY + "title_" + appWidgetId, customTitle)
+                        .putInt(PREF_PREFIX_KEY + "max_" + appWidgetId, maxItems)
+                        .putBoolean(
+                            PREF_PREFIX_KEY + "description_" + appWidgetId,
+                            showDescription
+                        )
+                }
 
                 // Update the widget
                 val context = this@RssWidgetConfigureActivity
                 val appWidgetManager = AppWidgetManager.getInstance(context)
-                RssWidgetProvider.updateAppWidget(context, appWidgetManager, appWidgetId, url, customTitle, maxItems)
+                RssWidgetProvider.updateAppWidget(context, appWidgetManager, appWidgetId, url, customTitle, maxItems, showDescription)
 
                 // Return result
                 val resultValue = Intent().apply {
@@ -115,6 +120,10 @@ class RssWidgetConfigureActivity : Activity() {
         fun loadMaxItemsPref(context: Context, appWidgetId: Int): Int {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             return prefs.getInt(PREF_PREFIX_KEY + "max_" + appWidgetId, 20)
+        }
+        fun loadDescriptionPref(context: Context, appWidgetId: Int): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(PREF_PREFIX_KEY + "description_" + appWidgetId, false)
         }
     }
 }

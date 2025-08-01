@@ -14,7 +14,8 @@ class RssWidgetProvider : AppWidgetProvider() {
             val url = RssWidgetConfigureActivity.loadRssUrlPref(context, appWidgetId) ?: "https://hnrss.org/frontpage?link=comments&description=0"
             val customTitle = RssWidgetConfigureActivity.loadTitlePref(context, appWidgetId)
             val maxItems = RssWidgetConfigureActivity.loadMaxItemsPref(context, appWidgetId)
-            updateAppWidget(context, appWidgetManager, appWidgetId, url, customTitle, maxItems)
+            val showDescription = RssWidgetConfigureActivity.loadDescriptionPref(context, appWidgetId)
+            updateAppWidget(context, appWidgetManager, appWidgetId, url, customTitle, maxItems, showDescription)
         }
     }
 
@@ -42,11 +43,12 @@ class RssWidgetProvider : AppWidgetProvider() {
         }
 
         // Add this function to update the widget with the selected URL
-        fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, url: String, customTitle: String? = null, maxItems: Int = 20) {
+        fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, url: String, customTitle: String? = null, maxItems: Int = 20, showDescription: Boolean = false) {
             val views = RemoteViews(context.packageName, R.layout.widget_rss)
             val intent = Intent(context, RssWidgetService::class.java)
             intent.putExtra("rss_url", url)
             intent.putExtra("max_items", maxItems)
+            intent.putExtra("show_description", showDescription)
             views.setRemoteAdapter(R.id.widget_list, intent)
             views.setEmptyView(R.id.widget_list, R.id.empty_text)
 

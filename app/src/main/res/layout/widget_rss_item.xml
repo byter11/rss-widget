@@ -1,31 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_rss_item"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
+    android:background="@drawable/material_card"
+    android:orientation="vertical"
     android:padding="4dp"
-    android:background="@drawable/material_card_bg">
+    android:theme="@style/Theme.Material3.DynamicColors.DayNight">
 
     <TextView
         android:id="@+id/item_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:textSize="15sp"
-        android:textColor="@android:color/white"
+        android:ellipsize="end"
         android:maxLines="2"
         android:padding="4dp"
-        android:ellipsize="end"/>
+        android:textColor="?android:attr/colorForeground"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/item_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:paddingLeft="4dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="12sp" />
 
     <TextView
         android:id="@+id/item_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="12sp"
-        android:textColor="#D3D3D3"
+        android:ellipsize="end"
         android:maxLines="1"
         android:padding="4dp"
-        android:ellipsize="end"/>
+        android:textColor="?android:attr/colorSecondary"
+        android:textSize="10sp" />
 </LinearLayout>

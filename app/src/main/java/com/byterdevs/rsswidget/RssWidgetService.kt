@@ -7,6 +7,7 @@ class RssWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
         val rssUrl = intent.getStringExtra("rss_url")
         val maxItems = intent.getIntExtra("max_items", 20)
-        return RssRemoteViewsFactory(this.applicationContext, rssUrl, maxItems)
+        val showDescription = intent.getBooleanExtra("show_description", false)
+        return RssRemoteViewsFactory(this.applicationContext, rssUrl, maxItems, showDescription)
     }
 }

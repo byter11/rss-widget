@@ -4,19 +4,22 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Parcelable
+import android.util.Log
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
+import androidx.core.text.HtmlCompat
 import com.rometools.rome.io.SyndFeedInput
 import com.rometools.rome.io.XmlReader
-import androidx.core.text.HtmlCompat
 import kotlinx.parcelize.Parcelize
 import java.net.URL
 import java.text.SimpleDateFormat
-import java.util.*
-import android.util.Log
+import java.util.Locale
 
 class RssRemoteViewsFactory(private val context: Context, private val rssUrl: String?, private val maxItems: Int = 20, private val showDescription: Boolean = false) : RemoteViewsService.RemoteViewsFactory {
     private var items = mutableListOf<RssItem>()
+    private var customTitle: String? = null
+    private var showTitle: Boolean = false
+
     companion object {
         private val refreshLock = Any()
         @Volatile private var isRefreshing = false
@@ -70,16 +73,32 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
         }
     }
     
+    fun setHeader(title: String?) {
+        customTitle = title
+        showTitle = !title.isNullOrEmpty()
+    }
+
     override fun getCount(): Int {
         Log.d("RssRemoteViewsFactory", "getCount() called. Item count: ${items.size}")
-        return items.size
+        return items.size + if (showTitle) 1 else 0
+    }
+
+    override fun getViewTypeCount(): Int {
+        // We have a header and a list item, so two view types.
+        return 2
     }
 
     override fun getViewAt(position: Int): RemoteViews {
-        if (position >= getCount()) {
+        if (showTitle && position == 0) {
+            val headerViews = RemoteViews(context.packageName, R.layout.widget_rss_header)
+            headerViews.setTextViewText(R.id.widget_title, customTitle)
+            return headerViews
+        }
+        val itemIndex = if (showTitle) position - 1 else position
+        if (itemIndex >= items.size) {
             return getLoadingView();
         }
-        val item = items[position]
+        val item = items[itemIndex]
         val views = RemoteViews(context.packageName, R.layout.widget_rss_item)
         views.setTextViewText(R.id.item_title, item.title)
         if(showDescription && item.description.isNotEmpty()) {
@@ -102,7 +121,6 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
     override fun getLoadingView(): RemoteViews {
         return RemoteViews(context.packageName, R.layout.widget_rss_loading)
     }
-    override fun getViewTypeCount(): Int = 1
     override fun getItemId(position: Int): Long = position.toLong()
     override fun hasStableIds(): Boolean = true
     override fun onDestroy() { items.clear() }

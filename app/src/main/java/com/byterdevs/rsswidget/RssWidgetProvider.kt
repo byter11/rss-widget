@@ -49,16 +49,9 @@ class RssWidgetProvider : AppWidgetProvider() {
             intent.putExtra("rss_url", url)
             intent.putExtra("max_items", maxItems)
             intent.putExtra("show_description", showDescription)
+            intent.putExtra("custom_title", customTitle) // Pass customTitle as an extra
             views.setRemoteAdapter(R.id.widget_list, intent)
             views.setEmptyView(R.id.widget_list, R.id.empty_text)
-
-            // Set custom title if provided
-            if (!customTitle.isNullOrEmpty()) {
-                views.setTextViewText(R.id.widget_title, customTitle)
-                views.setViewVisibility(R.id.widget_title, android.view.View.VISIBLE)
-            } else {
-                views.setViewVisibility(R.id.widget_title, android.view.View.GONE)
-            }
 
             // Set up click and refresh intents
             val clickIntent = Intent(context, BrowserLauncherActivity::class.java)

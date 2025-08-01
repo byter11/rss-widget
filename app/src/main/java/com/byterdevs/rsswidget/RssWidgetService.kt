@@ -5,6 +5,8 @@ import android.widget.RemoteViewsService
 
 class RssWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
-        return RssRemoteViewsFactory(this.applicationContext)
+        val rssUrl = intent.getStringExtra("rss_url")
+        val maxItems = intent.getIntExtra("max_items", 20)
+        return RssRemoteViewsFactory(this.applicationContext, rssUrl, maxItems)
     }
 }

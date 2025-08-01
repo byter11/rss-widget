@@ -28,6 +28,11 @@
             android:name=".BrowserLauncherActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:exported="true" />
+        <activity
+            android:name=".RssWidgetConfigureActivity"
+            android:exported="true"
+            android:theme="@style/Theme.RSSWidget"
+        />
     </application>
 
 </manifest>

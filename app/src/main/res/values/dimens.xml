@@ -1,0 +1,3 @@
+<resources>
+    <dimen name="sample_button_stroke_width">1dp</dimen>
+</resources>

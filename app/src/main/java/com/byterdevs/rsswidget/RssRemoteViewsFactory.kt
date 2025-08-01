@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import android.util.Log
 
-class RssRemoteViewsFactory(private val context: Context) : RemoteViewsService.RemoteViewsFactory {
+class RssRemoteViewsFactory(private val context: Context, private val rssUrl: String?, private val maxItems: Int = 20) : RemoteViewsService.RemoteViewsFactory {
     private var items = mutableListOf<RssItem>()
     companion object {
         private val refreshLock = Any()
@@ -28,7 +28,7 @@ class RssRemoteViewsFactory(private val context: Context) : RemoteViewsService.R
             val feedUrl = URL(url)
             val input = SyndFeedInput()
             val feed = input.build(XmlReader(feedUrl))
-            for (entry in feed.entries.take(20)) {
+            for (entry in feed.entries.take(maxItems)) {
                 val title = entry.title ?: "No Title"
                 val link = entry.link ?: ""
                 val pubDate = entry.publishedDate?.let {
@@ -39,7 +39,6 @@ class RssRemoteViewsFactory(private val context: Context) : RemoteViewsService.R
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
         return items
     }
 
@@ -51,24 +50,15 @@ class RssRemoteViewsFactory(private val context: Context) : RemoteViewsService.R
             }
             isRefreshing = true
         }
-
-        // Perform the network request synchronously.
         try {
-            val loadedItems = loadRSS("https://hnrss.org/frontpage?link=comments&description=0")
-
-            // Clear the old list and add the new items
+            val url = rssUrl ?: "https://hnrss.org/frontpage?link=comments&description=0"
+            val loadedItems = loadRSS(url)
             items.clear()
             items.addAll(loadedItems)
-            Log.d(
-                "RssRemoteViewsFactory",
-                "Data loaded successfully. Item count: ${items.size}"
-            )
-
+            Log.d("RssRemoteViewsFactory", "Data loaded successfully. Item count: ${items.size}")
         } catch (e: Exception) {
-            // Handle network or parsing errors
             Log.e("RssRemoteViewsFactory", "Failed to load RSS feed", e)
             items.clear()
-            // Optionally add an error message item or handle the empty state
         } finally {
             isRefreshing = false
         }

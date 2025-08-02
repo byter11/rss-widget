@@ -1,10 +1,11 @@
 <resources>
-    <string name="app_name">RSS Widget</string>
+    <string name="app_name">HomeFeed - RSS Widget</string>
+    <string name="app_label">HomeFeed</string>
     <string name="refresh">Refresh</string>
     <string name="description">Description</string>
     <string name="rss_feed">RSS Feed</string>
     <string name="header">Header</string>
     <string name="done">Done</string>
     <string name="rss_feed_url">RSS Feed URL</string>
-    <string name="configure_rss_widget">Configure RSS Widget</string>
+    <string name="configure_rss_widget">Configure</string>
 </resources>

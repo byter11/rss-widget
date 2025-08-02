@@ -33,7 +33,8 @@
             android:text="Loading..."
             android:textSize="32sp"
             android:textStyle="bold"
-            android:visibility="gone" />
+            android:visibility="gone"
+            />
 
         <ListView
             android:id="@+id/widget_list"

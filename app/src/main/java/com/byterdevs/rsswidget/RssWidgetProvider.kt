@@ -37,13 +37,6 @@ class RssWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
-        const val PREFS_NAME = "com.byterdevs.rsswidget.RssWidgetProvider"
-        const val PREF_PREFIX_KEY = "rss_url_"
-        fun loadRssUrlPref(context: Context, appWidgetId: Int): String? {
-            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            return prefs.getString(PREF_PREFIX_KEY + appWidgetId, null)
-        }
-
         // Add this function to update the widget with the selected URL
         fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, url: String, customTitle: String? = null, maxItems: Int = 20, showDescription: Boolean = false) {
             val views = RemoteViews(context.packageName, R.layout.widget_rss)

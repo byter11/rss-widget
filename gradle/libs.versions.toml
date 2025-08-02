@@ -8,6 +8,7 @@ espressoCore = "3.5.1"
 appcompat = "1.6.1"
 material = "1.10.0"
 materialVersion = "1.12.0"
+prettytime = "5.0.8.Final"
 rome = "2.1.0"
 
 [libraries]
@@ -18,6 +19,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 material-v1120 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
+prettytime = { module = "org.ocpsoft.prettytime:prettytime", version.ref = "prettytime" }
 rome = { module = "com.rometools:rome", version.ref = "rome" }
 androidx-core = { group = "androidx.core", name = "core", version = "1.13.1" }
 

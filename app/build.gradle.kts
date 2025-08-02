@@ -46,4 +46,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.material.v1120)
     implementation(libs.androidx.core)
+    implementation(libs.prettytime)
 }

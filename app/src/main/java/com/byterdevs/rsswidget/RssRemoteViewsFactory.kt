@@ -19,9 +19,8 @@ import com.rometools.rome.io.XmlReader
 import kotlinx.parcelize.Parcelize
 import java.net.HttpURLConnection
 import java.net.URL
-import java.text.SimpleDateFormat
-import java.util.Locale
 import androidx.core.net.toUri
+import org.ocpsoft.prettytime.PrettyTime
 
 @ColorInt
 fun Context.getColorResCompat(@AttrRes id: Int): Int {
@@ -65,7 +64,7 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
                 val plainDescription = HtmlCompat.fromHtml(rawDescription, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().replace("\n", " ").trim()
                 val truncatedDescription = if (plainDescription.length > 100) plainDescription.take(500) + "..." else plainDescription
                 val pubDate = entry.publishedDate?.let {
-                    SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(it)
+                    PrettyTime().format(it)
                 } ?: ""
                 items.add(RssItem(title, truncatedDescription, link, pubDate))
             }

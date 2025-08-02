@@ -29,7 +29,9 @@ class RssWidgetProvider : AppWidgetProvider() {
             Log.d("RssWidgetProvider", "appWidgetId: $appWidgetId")
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 val appWidgetManager = AppWidgetManager.getInstance(context)
-                appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list)
+                val views = RemoteViews(context.packageName, R.layout.widget_rss)
+                appWidgetManager.updateAppWidget(appWidgetId, null)
+                onUpdate(context, appWidgetManager, intArrayOf(appWidgetId))
             }
         }
     }
@@ -75,6 +77,7 @@ class RssWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.btn_refresh, refreshPendingIntent)
             appWidgetManager.updateAppWidget(appWidgetId, views)
+            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list)
         }
     }
 

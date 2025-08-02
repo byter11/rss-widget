@@ -11,6 +11,7 @@ import androidx.core.text.HtmlCompat
 import com.rometools.rome.io.SyndFeedInput
 import com.rometools.rome.io.XmlReader
 import kotlinx.parcelize.Parcelize
+import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -29,10 +30,17 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
 
     fun loadRSS(url: String): List<RssItem> {
         val items = mutableListOf<RssItem>()
+        var connection: HttpURLConnection? = null
         try {
             val feedUrl = URL(url)
             val input = SyndFeedInput()
-            val feed = input.build(XmlReader(feedUrl))
+            connection = feedUrl.openConnection() as HttpURLConnection
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:48.0) Gecko/48.0 Firefox/48.0")
+            connection.connectTimeout = 10000 // 10 seconds
+            connection.readTimeout = 15000 // 15 seconds
+            connection.connect()
+
+            val feed = input.build(XmlReader(connection.inputStream))
             for (entry in feed.entries.take(maxItems)) {
                 val title = entry.title ?: "No Title"
                 val link = entry.link ?: ""
@@ -47,6 +55,8 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        } finally {
+            connection?.disconnect()
         }
         return items
     }

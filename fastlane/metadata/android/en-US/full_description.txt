@@ -1,0 +1,9 @@
+<b>HomeFeed</b> is a customizable RSS feed widget
+
+Features:
+
+- Add any RSS feed URL and display articles in a widget
+- Customizable widget header/title
+- Show/hide article descriptions
+- Set maximum number of items to display
+- Material You theme support

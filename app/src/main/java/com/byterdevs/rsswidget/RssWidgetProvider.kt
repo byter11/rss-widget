@@ -30,8 +30,8 @@ class RssWidgetProvider : AppWidgetProvider() {
             Log.d("RssWidgetProvider", "appWidgetId: $appWidgetId")
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 val appWidgetManager = AppWidgetManager.getInstance(context)
-                val views = RemoteViews(context.packageName, R.layout.widget_rss)
-                appWidgetManager.updateAppWidget(appWidgetId, null)
+                val views = RemoteViews(context.packageName, R.layout.widget_rss_loading)
+                appWidgetManager.updateAppWidget(appWidgetId, views)
                 onUpdate(context, appWidgetManager, intArrayOf(appWidgetId))
             }
         }

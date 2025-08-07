@@ -35,6 +35,7 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
     private var customTitle: String? = null
     private var showTitle: Boolean = false
     private var appWidgetId: Int = -1
+    private var error: Boolean = false
 
     companion object {
         private val refreshLock = Any()
@@ -45,33 +46,26 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
 
     fun loadRSS(url: String): List<RssItem> {
         val items = mutableListOf<RssItem>()
-        var connection: HttpURLConnection? = null
-        try {
-            val feedUrl = URL(url)
-            val input = SyndFeedInput()
-            connection = feedUrl.openConnection() as HttpURLConnection
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:48.0) Gecko/48.0 Firefox/48.0")
-            connection.connectTimeout = 10000 // 10 seconds
-            connection.readTimeout = 15000 // 15 seconds
-            connection.connect()
+        val feedUrl = URL(url)
+        val input = SyndFeedInput()
+        val connection = feedUrl.openConnection() as HttpURLConnection
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:48.0) Gecko/48.0 Firefox/48.0")
+        connection.connectTimeout = 10000 // 10 seconds
+        connection.readTimeout = 15000 // 15 seconds
+        connection.connect()
 
-            val feed = input.build(XmlReader(connection.inputStream))
-            for (entry in feed.entries.take(maxItems)) {
-                val title = entry.title ?: "No Title"
-                val link = entry.link ?: ""
-                val rawDescription = entry.description?.value ?: ""
-                // Parse HTML to plain text and truncate to 100 chars with ellipses
-                val plainDescription = HtmlCompat.fromHtml(rawDescription, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().replace("\n", " ").trim()
-                val truncatedDescription = if (plainDescription.length > 100) plainDescription.take(500) + "..." else plainDescription
-                val pubDate = entry.publishedDate?.let {
-                    PrettyTime().format(it)
-                } ?: ""
-                items.add(RssItem(title, truncatedDescription, link, pubDate))
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            connection?.disconnect()
+        val feed = input.build(XmlReader(connection.inputStream))
+        for (entry in feed.entries.take(maxItems)) {
+            val title = entry.title ?: "No Title"
+            val link = entry.link ?: ""
+            val rawDescription = entry.description?.value ?: ""
+            // Parse HTML to plain text and truncate to 100 chars with ellipses
+            val plainDescription = HtmlCompat.fromHtml(rawDescription, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().replace("\n", " ").trim()
+            val truncatedDescription = if (plainDescription.length > 100) plainDescription.take(500) + "..." else plainDescription
+            val pubDate = entry.publishedDate?.let {
+                PrettyTime().format(it)
+            } ?: ""
+            items.add(RssItem(title, truncatedDescription, link, pubDate))
         }
         return items
     }
@@ -84,9 +78,13 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
             }
             isRefreshing = true
         }
+
         items.clear()
+        error = false
+
         if(rssUrl == null) {
-            items.add(RssItem("Invalid RSS Feed URL", "", "", ""))
+            error = true
+            items.add(RssItem("Failed to load RSS feed", "Verify the URL and add the widget again.", "", ""))
             isRefreshing = false
             return
         }
@@ -99,6 +97,8 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
         } catch (e: Exception) {
             Log.e("RssRemoteViewsFactory", "Failed to load RSS feed", e)
             items.clear()
+            error = true
+            items.add(RssItem("Failed to load RSS feed", "Verify the URL and add the widget again.", "", ""))
         } finally {
             isRefreshing = false
         }
@@ -111,7 +111,6 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
     fun setAppWidgetId(id: Int) { appWidgetId = id }
 
     override fun getCount(): Int {
-        Log.d("RssRemoteViewsFactory", "getCount() called. Item count: ${items.size}")
         return items.size + if (showTitle) 1 else 0
     }
 
@@ -133,7 +132,7 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
         val item = items[itemIndex]
         val views = RemoteViews(context.packageName, R.layout.widget_rss_item)
         views.setTextViewText(R.id.item_title, item.title)
-        if(showDescription && item.description.isNotEmpty()) {
+        if((showDescription || error) && item.description.isNotEmpty()) {
             views.setViewVisibility(R.id.item_description, android.view.View.VISIBLE)
             views.setTextViewText(R.id.item_description, item.description)
         } else {

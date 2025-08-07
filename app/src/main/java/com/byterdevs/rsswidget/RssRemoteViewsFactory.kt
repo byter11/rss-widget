@@ -84,10 +84,16 @@ class RssRemoteViewsFactory(private val context: Context, private val rssUrl: St
             }
             isRefreshing = true
         }
+        items.clear()
+        if(rssUrl == null) {
+            items.add(RssItem("Invalid RSS Feed URL", "", "", ""))
+            isRefreshing = false
+            return
+        }
+
         try {
-            val url = rssUrl ?: "https://hnrss.org/frontpage?link=comments&description=0"
+            val url = rssUrl
             val loadedItems = loadRSS(url)
-            items.clear()
             items.addAll(loadedItems)
             Log.d("RssRemoteViewsFactory", "Data loaded successfully. Item count: ${items.size}")
         } catch (e: Exception) {

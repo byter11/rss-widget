@@ -44,11 +44,11 @@ class RssWidgetConfigureActivity : Activity() {
         val sampleButtonsContainer = findViewById<LinearLayout>(R.id.sample_buttons_container)
         val inflater = LayoutInflater.from(this)
         val samples = listOf(
+            Pair("Reddit", "https://www.reddit.com/r/news/.rss"),
             Pair("Hacker News", "https://hnrss.org/frontpage?link=comments"),
             Pair("BBC", "http://feeds.bbci.co.uk/news/rss.xml"),
             Pair("NY Times", "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"),
             Pair("Guardian", "https://www.theguardian.com/world/rss"),
-            Pair("Reddit", "https://www.reddit.com/r/news/.rss")
         )
 
         samples.forEach { (label, url) ->
@@ -112,6 +112,7 @@ class RssWidgetConfigureActivity : Activity() {
         const val PREF_PREFIX_KEY = "rss_url_"
         fun loadRssUrlPref(context: Context, appWidgetId: Int): String? {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            println("loadRssUrlPref called with appWidgetId: $appWidgetId, ${prefs.getString(PREF_PREFIX_KEY + appWidgetId, null)}")
             return prefs.getString(PREF_PREFIX_KEY + appWidgetId, null)
         }
         fun loadTitlePref(context: Context, appWidgetId: Int): String? {

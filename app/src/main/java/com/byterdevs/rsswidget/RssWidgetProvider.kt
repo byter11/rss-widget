@@ -7,11 +7,12 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import android.util.Log
+import androidx.core.net.toUri
 
 class RssWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
-            val url = RssWidgetConfigureActivity.loadRssUrlPref(context, appWidgetId) ?: "https://hnrss.org/frontpage?link=comments&description=0"
+            val url = RssWidgetConfigureActivity.loadRssUrlPref(context, appWidgetId)
             val customTitle = RssWidgetConfigureActivity.loadTitlePref(context, appWidgetId)
             val maxItems = RssWidgetConfigureActivity.loadMaxItemsPref(context, appWidgetId)
             val showDescription = RssWidgetConfigureActivity.loadDescriptionPref(context, appWidgetId)
@@ -38,13 +39,15 @@ class RssWidgetProvider : AppWidgetProvider() {
 
     companion object {
         // Add this function to update the widget with the selected URL
-        fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, url: String, customTitle: String? = null, maxItems: Int = 20, showDescription: Boolean = false) {
+        fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, url: String?, customTitle: String? = null, maxItems: Int = 20, showDescription: Boolean = false) {
             val views = RemoteViews(context.packageName, R.layout.widget_rss)
             val intent = Intent(context, RssWidgetService::class.java)
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             intent.putExtra("rss_url", url)
             intent.putExtra("max_items", maxItems)
             intent.putExtra("show_description", showDescription)
             intent.putExtra("custom_title", customTitle) // Pass customTitle as an extra
+            intent.data = intent.toUri(Intent.URI_INTENT_SCHEME).toUri()
             views.setRemoteAdapter(R.id.widget_list, intent)
             views.setEmptyView(R.id.widget_list, R.id.empty_text)
 

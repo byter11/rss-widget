@@ -112,7 +112,6 @@ class RssWidgetConfigureActivity : Activity() {
         const val PREF_PREFIX_KEY = "rss_url_"
         fun loadRssUrlPref(context: Context, appWidgetId: Int): String? {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            println("loadRssUrlPref called with appWidgetId: $appWidgetId, ${prefs.getString(PREF_PREFIX_KEY + appWidgetId, null)}")
             return prefs.getString(PREF_PREFIX_KEY + appWidgetId, null)
         }
         fun loadTitlePref(context: Context, appWidgetId: Int): String? {

@@ -46,7 +46,7 @@ class RssWidgetConfigureActivity : Activity() {
         val samples = listOf(
             Pair("Reddit", "https://www.reddit.com/r/news/.rss"),
             Pair("Hacker News", "https://hnrss.org/frontpage?link=comments"),
-            Pair("BBC", "http://feeds.bbci.co.uk/news/rss.xml"),
+            Pair("BBC", "https://feeds.bbci.co.uk/news/rss.xml"),
             Pair("NY Times", "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"),
             Pair("Guardian", "https://www.theguardian.com/world/rss"),
         )

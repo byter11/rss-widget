@@ -31,4 +31,14 @@
     <string name="open_links_external">External browser</string>
     <string name="loading">Loading...</string>
     <string name="dim_read_items">Dim read items</string>
+    <string name="show_widget_title">Show Title Text</string>
+    <string name="show_header_bar">Show Header Bar (Options)</string>
+    <string name="widget_header_hint">Custom Title (Default: HomeFeed)</string>
+    <string name="add_feed">Add Feed</string>
+    <string name="active_feeds">Active Feeds</string>
+    <string name="content_display">Content Display</string>
+    <string name="theme">Theme</string>
+    <string name="system">System</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
 </resources>

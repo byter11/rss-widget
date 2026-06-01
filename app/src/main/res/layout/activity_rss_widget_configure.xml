@@ -2,13 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:background="?android:attr/colorBackground"
     android:orientation="vertical">
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -19,14 +20,16 @@
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="24dp"
                 android:text="@string/configure_rss_widget"
-                android:textAppearance="?attr/textAppearanceHeadline6" />
+                android:fontFamily="sans-serif-medium"
+                android:textAppearance="?attr/textAppearanceHeadline5" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="12dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:hint="@string/rss_feed_url">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -36,9 +39,67 @@
                     android:inputType="textUri" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_add_feed"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/add_feed" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/active_feeds"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:fontFamily="sans-serif-medium" />
+
+            <LinearLayout
+                android:id="@+id/sources_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_show_header_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="12dp"
+                android:text="@string/show_header_bar"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_show_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:layout_marginStart="24dp"
+                android:text="@string/show_widget_title"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:visibility="gone" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/title_input_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="48dp"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:hint="@string/widget_header_hint"
+                android:visibility="gone">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edit_widget_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapSentences" />
+            </com.google.android.material.textfield.TextInputLayout>
+
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:layout_marginBottom="4dp"
                 android:fillViewport="true"
                 android:scrollbars="none">
@@ -50,20 +111,6 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal" />
             </HorizontalScrollView>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/title_input_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:hint="@string/rss_feed">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edit_widget_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textCapSentences" />
-            </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/label_max_items"
@@ -165,19 +212,20 @@
                 android:text="@string/dim_read_items"
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/switch_images"
-                android:layout_width="match_parent"
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingTop="12dp"
-                android:text="@string/images"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/content_display"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:fontFamily="sans-serif-medium" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/switch_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="12dp"
+                android:paddingTop="8dp"
                 android:text="@string/description"
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
 
@@ -185,7 +233,8 @@
                 android:id="@+id/switch_trim_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="12dp"
+                android:paddingTop="8dp"
+                android:layout_marginStart="24dp"
                 android:text="@string/trim_description"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:visibility="gone" />
@@ -194,6 +243,7 @@
                 android:id="@+id/slider_trim_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
                 android:stepSize="10"
                 android:value="100"
                 android:valueFrom="100"
@@ -202,12 +252,85 @@
                 app:labelBehavior="gone" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_images"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:text="@string/images"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/switch_source"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="12dp"
+                android:paddingTop="8dp"
                 android:text="@string/show_article_source"
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/theme"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/theme_toggle_group"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_theme_system"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingLeft="12dp"
+                        android:paddingTop="8dp"
+                        android:paddingRight="12dp"
+                        android:paddingBottom="8dp"
+                        android:text="@string/system"
+                        app:shapeAppearance="?attr/shapeAppearanceCornerExtraSmall" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_theme_light"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingLeft="12dp"
+                        android:paddingTop="8dp"
+                        android:paddingRight="12dp"
+                        android:paddingBottom="8dp"
+                        android:text="@string/light"
+                        app:shapeAppearance="?attr/shapeAppearanceCornerExtraSmall" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_theme_dark"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingLeft="12dp"
+                        android:paddingTop="8dp"
+                        android:paddingRight="12dp"
+                        android:paddingBottom="8dp"
+                        android:text="@string/dark"
+                        app:shapeAppearance="?attr/shapeAppearanceCornerExtraSmall" />
+
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -257,13 +380,14 @@
 
                 </com.google.android.material.button.MaterialButtonToggleGroup>
             </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_add"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/done" />
         </LinearLayout>
     </ScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_add"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="@string/done"
+        app:shapeAppearance="?attr/shapeAppearanceCornerMedium" />
 </LinearLayout>

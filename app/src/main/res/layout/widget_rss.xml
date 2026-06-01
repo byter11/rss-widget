@@ -1,60 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widget_rss"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_1_0"
-    android:theme="@style/Theme.Material3.DynamicColors.DayNight">
+    android:background="@drawable/background_1_0">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:paddingLeft="6dp"
-        android:paddingRight="6dp">
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/widget_title"
+        <!-- Control Bar -->
+        <RelativeLayout
+            android:id="@+id/control_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="start"
-            android:padding="12dp"
-            android:textColor="?android:attr/colorForeground"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
+            android:paddingLeft="16dp"
+            android:paddingRight="12dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="8dp">
 
-        <TextView
-            android:id="@+id/empty_text"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:padding="64dp"
-            android:text="Loading..."
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:visibility="gone"
-            />
+            <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_alignParentLeft="true"
+                android:layout_toLeftOf="@+id/button_container"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/app_label"
+                android:textSize="18sp" />
 
-        <ListView
-            android:id="@+id/widget_list"
+            <LinearLayout
+                android:id="@+id/button_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btn_settings"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/header"
+                    android:padding="6dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_settings"
+                    android:alpha="0.7" />
+
+                <ImageButton
+                    android:id="@+id/btn_refresh"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginLeft="8dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/refresh"
+                    android:padding="6dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_refresh"
+                    android:alpha="0.7" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <ImageView
+            android:id="@+id/header_divider"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scrollbars="vertical" />
+            android:layout_height="1dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:background="@android:color/darker_gray"
+            android:contentDescription="@null"
+            android:alpha="0.15" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/empty_text"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/loading"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif" />
+
+            <ListView
+                android:id="@+id/widget_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="0dp"
+                android:paddingTop="4dp"
+                android:clipToPadding="false" />
+        </FrameLayout>
     </LinearLayout>
-
-    <ImageButton
-        android:id="@+id/btn_refresh"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="top|end"
-        android:layout_margin="8dp"
-        android:background="@drawable/bg_refresh_button"
-        android:contentDescription="@string/refresh"
-        android:elevation="4dp"
-        android:padding="4dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/ic_refresh"
-        app:tint="?android:attr/colorBackground" />
 </FrameLayout>

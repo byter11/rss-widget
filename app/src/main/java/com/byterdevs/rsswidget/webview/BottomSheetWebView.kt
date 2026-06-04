@@ -8,6 +8,9 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
+import android.webkit.WebResourceRequest
+import android.content.Intent
+import android.content.ActivityNotFoundException
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -100,6 +103,20 @@ class BottomSheetWebView(context: Context, activity: Activity, readerable: Boole
 
         webView.settings.isAlgorithmicDarkeningAllowed = true
         webView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                val url = request?.url ?: return false
+                if (url.scheme == "http" || url.scheme == "https") {
+                    val context = view?.context ?: return false
+                    try {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, url))
+                    } catch (e: ActivityNotFoundException) {
+                        // no app available to open the link
+                    }
+                    return true
+                }
+                return false
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
 

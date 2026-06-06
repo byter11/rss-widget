@@ -3,79 +3,64 @@
     android:id="@+id/widget_rss_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_margin="4dp"
     android:orientation="vertical"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp">
+    android:padding="4dp"
+    android:theme="@style/Theme.Material3.DynamicColors.DayNight">
 
     <TextView
         android:id="@+id/item_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"
-        android:maxLines="2"
-        android:textSize="17sp"
-        android:fontFamily="sans-serif-medium"
-        android:lineSpacingExtra="1dp" />
+        android:padding="4dp"
+        android:textColor="?android:attr/colorForeground"
+        android:textSize="15sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/item_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
         android:ellipsize="end"
-        android:maxLines="3"
-        android:textSize="12sp"
-        android:alpha="0.8" />
+        android:paddingLeft="4dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="12sp" />
 
     <ImageView
         android:id="@+id/item_image"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:scaleType="fitStart"
         android:adjustViewBounds="true"
-        android:scaleType="centerCrop"
-        android:contentDescription="@null"
-        android:visibility="gone" />
+        android:background="@drawable/material_card"
+        android:paddingVertical="4dp"
+        android:clipToOutline="true"
+    />
 
     <LinearLayout
-        android:id="@+id/meta_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp">
 
         <TextView
             android:id="@+id/item_source"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textSize="11sp"
-            android:fontFamily="sans-serif-medium"
-            android:textAllCaps="true"
-            android:alpha="0.8" />
-
-        <ImageView
-            android:id="@+id/dot_divider"
-            android:layout_width="3dp"
-            android:layout_height="3dp"
-            android:layout_marginLeft="6dp"
-            android:layout_marginRight="6dp"
-            android:background="@android:color/darker_gray"
-            android:visibility="gone"
-            android:contentDescription="@null"
-            android:alpha="0.5" />
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:paddingEnd="8dp"
+            android:visibility="gone"/>
 
         <TextView
             android:id="@+id/item_date"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textSize="11sp" />
+            android:textColor="?android:attr/colorSecondary"
+            android:textSize="10sp" />
     </LinearLayout>
 </LinearLayout>

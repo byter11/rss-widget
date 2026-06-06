@@ -11,9 +11,11 @@ import android.webkit.WebView
 import android.webkit.WebResourceRequest
 import android.content.Intent
 import android.content.ActivityNotFoundException
+import android.os.Build
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import androidx.annotation.RequiresApi
 import com.byterdevs.rsswidget.R
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -101,7 +103,9 @@ class BottomSheetWebView(context: Context, activity: Activity, readerable: Boole
 
         readabilityDoneOnce = false
 
-        webView.settings.isAlgorithmicDarkeningAllowed = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            webView.settings.isAlgorithmicDarkeningAllowed = true
+        }
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url ?: return false

@@ -4,56 +4,72 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Parcelable
 import android.util.Log
 import android.util.TypedValue
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
+import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.byterdevs.rsswidget.ThemeUtils.getThemedContextForWidget
-import com.byterdevs.rsswidget.ThemeUtils.getColorResCompat
 import com.byterdevs.rsswidget.ThemeUtils.setBgTransparency
-import com.byterdevs.rsswidget.ThemeMode
-import com.byterdevs.rsswidget.room.RssDatabase
-import com.byterdevs.rsswidget.room.RssItemDao
 import kotlinx.parcelize.Parcelize
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.ocpsoft.prettytime.PrettyTime
-import java.util.*
+import android.text.format.DateFormat
+import com.byterdevs.rsswidget.room.RssItemDao
+import java.util.Calendar
+import java.util.Date
+import kotlinx.coroutines.*
+
+@ColorInt
+fun Context.getColorResCompat(@AttrRes id: Int): Int {
+    val resolvedAttr = TypedValue()
+    this.theme.resolveAttribute(id, resolvedAttr, true)
+    val colorRes = resolvedAttr.run { if (resourceId != 0) resourceId else data }
+    return ContextCompat.getColor(this, colorRes)
+}
 
 class RssRemoteViewsFactory(
     private val context: Context,
     private val appWidgetId: Int
 ) : RemoteViewsService.RemoteViewsFactory {
-
-    private val items = mutableListOf<RssItem>()
+    private var items = mutableListOf<RssItem>()
     private lateinit var prefs: WidgetPrefs
+    private var error: Boolean = false
 
-    private var error = false
-
+    companion object {
+        private val refreshLock = Any()
+        @Volatile private var isRefreshing = false
+    }
     override fun onCreate() {
         prefs = context.getWidgetPrefs(appWidgetId)
     }
 
-    override fun onDataSetChanged() {
-        prefs = context.getWidgetPrefs(appWidgetId)
-        error = false
-        items.clear()
-
-        val db = RssDatabase.getInstance(context)
-        val dao = db.rssItemDao()
-
-        loadItems(dao)
+    fun formatAsTodayOrFullDate(date: java.util.Date): String {
+        return if (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) == date.date) {
+            "Today, " + DateFormat.format("h:mm a", date).toString()
+        } else {
+            DateFormat.format("MMM d, yyyy h:mm a", date).toString()
+        }
     }
 
-    private fun loadItems(dao: RssItemDao) = runBlocking {
+    fun formatDate(date: java.util.Date?): String {
+        if (date == null) return ""
+        return if (prefs.dateFormat == "absolute") {
+            formatAsTodayOrFullDate(date)
+        } else {
+            PrettyTime().format(date)
+        }
+    }
+
+    fun loadItems(dao: RssItemDao) = runBlocking {
+        val db = com.byterdevs.rsswidget.room.RssDatabase.getInstance(context)
+        val dao = db.rssItemDao()
         try {
             val entities = dao.getItemsForWidget(appWidgetId)
-
-            val loaded = entities.map {
+            val loadedItems = entities.map {
                 RssItem(
                     title = it.title,
                     description = it.description,
@@ -63,24 +79,36 @@ class RssRemoteViewsFactory(
                     image = it.image
                 )
             }
-
             withContext(Dispatchers.Main) {
-                items.addAll(loaded)
+                items.addAll(loadedItems)
             }
-
         } catch (e: Exception) {
-            Log.e("RssFactory", "DB load failed", e)
-
-            error = true
-            items.clear()
-            items.add(
-                RssItem(
-                    title = "Failed to load feed",
-                    description = "Check RSS source or re-add widget",
-                    link = ""
-                )
-            )
+            Log.e("RssRemoteViewsFactory", "Failed to load items from DB", e)
+            withContext(Dispatchers.Main) {
+                error = true
+                items.add(RssItem("Failed to load RSS feed", "Verify the URL and add the widget again.", ""))
+            }
+        } finally {
+            isRefreshing = false
         }
+    }
+
+    override fun onDataSetChanged() {
+        synchronized(refreshLock) {
+            if (isRefreshing) {
+                Log.d("RssRemoteViewsFactory", "Refresh already in progress, ignoring this request.")
+                return
+            }
+            isRefreshing = true
+        }
+        prefs = context.getWidgetPrefs(appWidgetId)
+        error = false
+        items.clear()
+        context.cacheDir.delete()
+
+        val db = com.byterdevs.rsswidget.room.RssDatabase.getInstance(context)
+        val dao = db.rssItemDao()
+        loadItems(dao)
     }
 
     override fun getCount(): Int {
@@ -89,129 +117,84 @@ class RssRemoteViewsFactory(
 
     override fun getViewTypeCount(): Int = 1
 
+    override fun getViewAt(position: Int): RemoteViews {
+        val item = items[position]
+        val views = RemoteViews(context.packageName, R.layout.widget_rss_item)
+        views.setTextViewText(R.id.item_title, item.title)
+        if((prefs.showDescription || error) && item.description.isNotEmpty()) {
+            views.setViewVisibility(R.id.item_description, android.view.View.VISIBLE)
+            views.setTextViewText(R.id.item_description, item.description)
+        } else {
+            views.setViewVisibility(R.id.item_description, android.view.View.GONE)
+        }
+        // Show image if available
+        if (item.image != null && item.image.isNotEmpty()) {
+            val imageUri = item.image.toUri()
+            views.setViewVisibility(R.id.item_image, android.view.View.VISIBLE)
+            val launcherPackageName = context.packageManager.resolveActivity(
+                Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_HOME),
+                PackageManager.MATCH_DEFAULT_ONLY
+            )?.activityInfo?.packageName
+            context.grantUriPermission(launcherPackageName, imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            views.setImageViewUri(R.id.item_image, imageUri)
+        } else {
+            views.setViewVisibility(R.id.item_image, android.view.View.GONE)
+        }
+        views.setTextViewText(R.id.item_date, formatDate(item.date))
+        if (prefs.showSource && item.source.isNotEmpty()) {
+            views.setViewVisibility(R.id.item_source, android.view.View.VISIBLE)
+            views.setTextViewText(R.id.item_source, item.source)
+        } else {
+            views.setViewVisibility(R.id.item_source, android.view.View.GONE)
+        }
+
+        if(prefs.dimReadItems) {
+            markItemRead(views, item)
+        }
+
+        val fillInIntent = Intent()
+        fillInIntent.data = item.link.toUri()
+        fillInIntent.putExtra("EXTRA_LINK", item.link)
+        fillInIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        views.setOnClickFillInIntent(R.id.item_title, fillInIntent)
+        views.setOnClickFillInIntent(R.id.item_description, fillInIntent)
+        views.setOnClickFillInIntent(R.id.item_date, fillInIntent)
+        views.setOnClickFillInIntent(R.id.widget_rss_item, fillInIntent)
+        return views
+    }
+
+    fun markItemRead(views: RemoteViews, item: RssItem) {
+        val configurationContext = getThemedContextForWidget(context)
+        val colorSecondary = configurationContext.getColorResCompat(android.R.attr.colorSecondary)
+        val colorTextSecondary = configurationContext.getColorResCompat(android.R.attr.textColorSecondary)
+        val colorTitle = configurationContext.getColorResCompat(android.R.attr.colorForeground)
+        val colorDesc = configurationContext.getColorResCompat(android.R.attr.textColorPrimary)
+
+        // Dim read items
+        val isRead = ReadItemsStore.isRead(context, appWidgetId, item.link)
+        if (isRead) {
+            views.setTextColor(R.id.item_title, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
+            views.setTextColor(R.id.item_description, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
+            views.setTextColor(R.id.item_date, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
+            views.setTextColor(R.id.item_source, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
+        } else {
+
+            views.setTextColor(R.id.item_title, colorTitle)
+            views.setTextColor(R.id.item_description, colorDesc)
+            views.setTextColor(R.id.item_date, colorSecondary)
+            views.setTextColor(R.id.item_source, colorTextSecondary)
+        }
+    }
+
     override fun getLoadingView(): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_rss_loading)
-
-        val themedContext = getThemedContextForWidget(context, prefs.themeMode)
-        val colorForeground = themedContext.getColorResCompat(android.R.attr.colorForeground)
-
-        views.setTextColor(R.id.loading_text, colorForeground)
-
-        return setBgTransparency(
-            context,
-            views,
-            R.id.widget_rss_loading,
-            prefs.transparency,
-            prefs.themeMode
-        )
+        return setBgTransparency(context, RemoteViews(context.packageName, R.layout.widget_rss_loading), R.id.widget_rss_loading, prefs.transparency)
     }
 
     override fun getItemId(position: Int): Long = position.toLong()
     override fun hasStableIds(): Boolean = true
-
     override fun onDestroy() {
         items.clear()
-    }
-
-    override fun getViewAt(position: Int): RemoteViews {
-
-        val themedContext = getThemedContextForWidget(context, prefs.themeMode)
-        val foreground = themedContext.getColorResCompat(android.R.attr.colorForeground)
-        val secondary = themedContext.getColorResCompat(android.R.attr.textColorSecondary)
-
-        val item = items[position]
-
-        val views = RemoteViews(context.packageName, R.layout.widget_rss_item)
-
-        // RESPONSIVE SIZING
-        val isCompact = prefs.compactMode
-        val titleSize = if (isCompact) 14f else 17f
-        val descSize = if (isCompact) 11f else 12f
-        val metaSize = if (isCompact) 9f else 11f
-        val horizontalPadding = if (isCompact) 10 else 16
-        val verticalPadding = if (isCompact) 4 else 10
-
-        views.setTextViewTextSize(R.id.item_title, TypedValue.COMPLEX_UNIT_SP, titleSize)
-        views.setTextViewTextSize(R.id.item_description, TypedValue.COMPLEX_UNIT_SP, descSize)
-        views.setTextViewTextSize(R.id.item_source, TypedValue.COMPLEX_UNIT_SP, metaSize)
-        views.setTextViewTextSize(R.id.item_date, TypedValue.COMPLEX_UNIT_SP, metaSize)
-
-        views.setViewPadding(R.id.widget_rss_item, horizontalPadding, verticalPadding, horizontalPadding, verticalPadding)
-
-        // TEXT
-        views.setTextViewText(R.id.item_title, item.title)
-        views.setTextViewText(R.id.item_description, item.description)
-        views.setTextViewText(R.id.item_date, formatDate(item.date))
-        views.setTextViewText(R.id.item_source, item.source)
-
-        // COLORS (single source of truth)
-        if (prefs.dimReadItems && ReadItemsStore.isRead(context, appWidgetId, item.link)) {
-            val dimColor = (foreground and 0x00FFFFFF) or 0x66000000 // ~40% alpha
-            views.setTextColor(R.id.item_title, dimColor)
-            views.setTextColor(R.id.item_description, dimColor)
-            views.setTextColor(R.id.item_date, dimColor)
-            views.setTextColor(R.id.item_source, dimColor)
-            views.setInt(R.id.dot_divider, "setBackgroundColor", dimColor)
-        } else {
-            views.setTextColor(R.id.item_title, foreground)
-            views.setTextColor(R.id.item_description, secondary)
-            views.setTextColor(R.id.item_date, secondary)
-            views.setTextColor(R.id.item_source, secondary)
-            views.setInt(R.id.dot_divider, "setBackgroundColor", secondary)
-        }
-
-        // VISIBILITY
-        views.setViewVisibility(
-            R.id.item_description,
-            if (prefs.showDescription && item.description.isNotEmpty())
-                android.view.View.VISIBLE
-            else
-                android.view.View.GONE
-        )
-
-        val showSource = prefs.showSource && item.source.isNotEmpty()
-        views.setViewVisibility(R.id.item_source, if (showSource) android.view.View.VISIBLE else android.view.View.GONE)
-        views.setViewVisibility(R.id.dot_divider, if (showSource) android.view.View.VISIBLE else android.view.View.GONE)
-
-        // Adjust metadata container spacing in compact mode
-        val metaTopPadding = if (isCompact) 4 else 8
-        views.setViewPadding(R.id.meta_container, 0, metaTopPadding, 0, 0)
-
-        // IMAGE (safe handling)
-        if (prefs.showImages && !item.image.isNullOrEmpty()) {
-            try {
-                val uri = Uri.parse(item.image)
-                views.setViewVisibility(R.id.item_image, android.view.View.VISIBLE)
-                views.setImageViewUri(R.id.item_image, uri)
-            } catch (e: Exception) {
-                views.setViewVisibility(R.id.item_image, android.view.View.GONE)
-            }
-        } else {
-            views.setViewVisibility(R.id.item_image, android.view.View.GONE)
-        }
-
-        // CLICK HANDLER
-        val fillInIntent = Intent().apply {
-            data = item.link.toUri()
-            putExtra("EXTRA_LINK", item.link)
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-        }
-
-        views.setOnClickFillInIntent(R.id.widget_rss_item, fillInIntent)
-        views.setOnClickFillInIntent(R.id.item_title, fillInIntent)
-        views.setOnClickFillInIntent(R.id.item_description, fillInIntent)
-
-        return views
-    }
-
-    private fun formatDate(date: Date?): String {
-        if (date == null) return ""
-
-        return if (prefs.dateFormat == "absolute") {
-            PrettyTime().format(date)
-        } else {
-            PrettyTime().format(date)
-        }
+        context.cacheDir.delete()
     }
 
     @Parcelize
@@ -222,5 +205,5 @@ class RssRemoteViewsFactory(
         val date: Date? = null,
         val source: String = "",
         val image: String? = null
-    ) : Parcelable
+    ): Parcelable
 }

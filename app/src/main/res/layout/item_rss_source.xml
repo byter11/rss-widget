@@ -10,12 +10,6 @@
     android:background="?attr/selectableItemBackground"
     android:layout_marginBottom="4dp">
 
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/switch_enabled"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:switchPadding="12dp" />
-
     <TextView
         android:id="@+id/text_url"
         android:layout_width="0dp"
@@ -33,7 +27,7 @@
         android:layout_height="40dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/app_name"
-        android:src="@android:drawable/ic_menu_delete"
+        android:src="@android:drawable/ic_delete"
         app:tint="?attr/colorError"
         android:alpha="0.8" />
 </LinearLayout>

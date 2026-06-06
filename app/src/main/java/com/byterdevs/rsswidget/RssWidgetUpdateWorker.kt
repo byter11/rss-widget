@@ -29,68 +29,26 @@ class RssWidgetUpdateWorker(
         if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
             return Result.failure()
         }
-
         val hardRefresh = inputData.getBoolean("hardRefresh", false)
 
-        val prefs = applicationContext.getWidgetPrefs(appWidgetId)
-        
         val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
         val db = RssDatabase.getInstance(applicationContext)
-        val itemDao = db.rssItemDao()
-        val sourceDao = db.rssSourceDao()
-
-        val sources = runBlocking { sourceDao.getSourcesForWidget(appWidgetId).filter { it.isEnabled } }
-        
-        if (sources.isEmpty() && prefs.url == null) {
-            return Result.failure()
-        }
+        val dao = db.rssItemDao()
 
         if (hardRefresh) {
             Log.d("RssWidgetUpdateWorker", "Refresh request received")
-            runBlocking { itemDao.clearItemsForWidget(appWidgetId) }
+            runBlocking { dao.clearItemsForWidget(appWidgetId) }
             RssWidgetProvider.updateAppWidget(applicationContext, appWidgetManager, appWidgetId)
         }
 
-        // Migration: if prefs.url is present, add it to sources and clear it?
-        // For now, just handle both.
-        val allItems = mutableListOf<RssItemEntity>()
-        val imgPrefix = UUID.randomUUID().toString()
-
-        sources.forEach { source ->
-            try {
-                val fetched = fetchRssItems(appWidgetId, source.url, prefs, imgPrefix)
-                allItems.addAll(fetched)
-            } catch (e: Exception) {
-                Log.e("RssWidgetUpdateWorker", "Failed to fetch ${source.url}: $e")
-            }
-        }
-
-        // Also handle the legacy single URL from prefs if present
-        if (prefs.url != null) {
-            try {
-                val fetched = fetchRssItems(appWidgetId, prefs.url, prefs, imgPrefix)
-                allItems.addAll(fetched)
-            } catch (e: Exception) {}
-        }
-
-        if (allItems.isNotEmpty()) {
-            // Sort all by date desc
-            allItems.sortByDescending { it.date ?: 0L }
-            
-            runBlocking {
-                itemDao.clearItemsForWidget(appWidgetId)
-                clearStaleImages(applicationContext, appWidgetId, imgPrefix)
-                itemDao.insertAll(allItems.take(prefs.maxItems))
-            }
-            Log.i("RssWidgetUpdateWorker", "Loaded ${allItems.size} articles for widget $appWidgetId")
-        }
-
+        updateRssFeed(appWidgetId, dao)
         RssWidgetProvider.updateAppWidget(applicationContext, appWidgetManager, appWidgetId)
         return Result.success()
     }
 
-    private fun fetchRssItems(appWidgetId: Int, rssUrl: String, prefs: WidgetPrefs, imgPrefix: String): List<RssItemEntity> {
+    private fun fetchRssItems(appWidgetId: Int, rssUrl: String): List<RssItemEntity> {
         val feedUrl = URL(rssUrl)
+        val prefs = applicationContext.getWidgetPrefs(appWidgetId)
         val input = SyndFeedInput()
         val connection = feedUrl.openConnection() as HttpURLConnection
         connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:48.0) Gecko/48.0 Firefox/48.0")
@@ -101,18 +59,18 @@ class RssWidgetUpdateWorker(
             connection.connect()
             val feed = input.build(XmlReader(connection.inputStream))
             val feedTitle = feed.title?.trim() ?: ""
-            
+
             feed.entries.map { entry ->
                 val title = entry.title ?: "No Title"
                 val link = entry.link ?: ""
-                val rawDescription = entry.description?.value 
-                    ?: entry.contents.firstOrNull()?.value 
+                val rawDescription = entry.description?.value
+                    ?: entry.contents.firstOrNull()?.value
                     ?: ""
                 val plainDescription = HtmlCompat.fromHtml(rawDescription, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().replace("\n", " ").trim()
                 val description = if (prefs.descriptionLength > 0 && plainDescription.length > prefs.descriptionLength)
                     plainDescription.take(prefs.descriptionLength) + "..."
                 else plainDescription
-                
+
                 val source = when {
                     rssUrl.contains("reddit.com", ignoreCase = true) -> {
                         val subreddit = rssUrl.substringAfter("/r/").substringBefore("/").trim()
@@ -128,7 +86,7 @@ class RssWidgetUpdateWorker(
                 }
 
                 val localImageUri = if (prefs.showImages) getImageUrl(entry)?.let {
-                    getLocalImageUri(applicationContext, appWidgetId, imgPrefix, it)
+                    getLocalImageUri(applicationContext, appWidgetId, it)
                 } else null
 
                 RssItemEntity(
@@ -149,7 +107,7 @@ class RssWidgetUpdateWorker(
         }
     }
 
-    private fun clearStaleImages(context: Context, appWidgetId: Int, prefix: String) {
+    private fun clearStaleImages(context: Context, appWidgetId: Int) {
         for (f in context.cacheDir.listFiles()!!) {
             // Don't delete images for other widgets
             if (!f.name.startsWith("$appWidgetId")) {
@@ -157,15 +115,15 @@ class RssWidgetUpdateWorker(
             }
 
             // Delete stale images without the current prefix
-            if (!f.getName().startsWith("${appWidgetId}_${prefix}")) {
+            if (!f.getName().startsWith("${appWidgetId}_${id.toString()}")) {
                 f.delete()
             }
         }
     }
 
-    private fun getLocalImageUri(context: Context, appWidgetId: Int, prefix: String, imageUrl: String?): String? {
+    private fun getLocalImageUri(context: Context, appWidgetId: Int, imageUrl: String?): String? {
         if (imageUrl == null || !imageUrl.startsWith("http")) return null
-        val cachedFile = downloadAndCacheImage(context, appWidgetId, prefix, imageUrl)
+        val cachedFile = downloadAndCacheImage(context, appWidgetId, imageUrl)
         return cachedFile?.let {
             try {
                 val uri = androidx.core.content.FileProvider.getUriForFile(
@@ -181,10 +139,10 @@ class RssWidgetUpdateWorker(
     }
 
     // Helper function to download and cache image
-    private fun downloadAndCacheImage(context: Context, appWidgetId: Int, prefix: String, url: String): java.io.File? {
+    private fun downloadAndCacheImage(context: Context, appWidgetId: Int, url: String): java.io.File? {
         return try {
             val cacheDir = context.cacheDir
-            val fileName = "${appWidgetId}_${prefix}_${url.hashCode()}.jpg"
+            val fileName = "${appWidgetId}_${id.toString()}_${url.hashCode()}.jpg"
             val file = java.io.File(cacheDir, fileName)
             if (!file.exists()) {
                 val connection = URL(url).openConnection()
@@ -254,4 +212,19 @@ class RssWidgetUpdateWorker(
         return null
     }
 
+    fun updateRssFeed(appWidgetId: Int, dao: RssItemDao) = runBlocking {
+        val prefs = applicationContext.getWidgetPrefs(appWidgetId)
+
+        val entities = mutableListOf<RssItemEntity>()
+        prefs.urls.forEach { url ->
+            entities.addAll(fetchRssItems(appWidgetId, url))
+        }
+
+        if (!entities.isEmpty()) {
+            dao.clearItemsForWidget(appWidgetId)
+            clearStaleImages(applicationContext, appWidgetId)
+            dao.insertAll(entities)
+            Log.i("RssWidgetUpdateWorker", "Loaded ${entities.size} articles for widget $appWidgetId")
+        }
+    }
 }

@@ -5,7 +5,7 @@
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:shape="rectangle">
             <solid android:color="?android:attr/colorAccent" />
-            <corners android:radius="14dp" />
+            <corners android:radius="12dp" />
             <padding android:left="6dp" android:top="6dp" android:right="6dp" android:bottom="6dp"/>
         </shape>
     </item>
@@ -13,8 +13,8 @@
     <item>
         <shape xmlns:android="http://schemas.android.com/apk/res/android"
             android:shape="rectangle">
-            <solid android:color="?android:attr/colorPrimary" />
-            <corners android:radius="14dp" />
+            <solid android:color="?android:attr/colorBackgroundFloating" />
+            <corners android:radius="12dp" />
             <padding android:left="6dp" android:top="6dp" android:right="6dp" android:bottom="6dp"/>
         </shape>
     </item>

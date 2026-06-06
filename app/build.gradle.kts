@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.byterdevs.rsswidget"
-        minSdk = 33
+        minSdk = 28
         targetSdk = 36
         versionCode = 4
         versionName = "1.3.0"

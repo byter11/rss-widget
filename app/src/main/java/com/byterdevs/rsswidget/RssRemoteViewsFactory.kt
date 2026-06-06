@@ -160,11 +160,23 @@ class RssRemoteViewsFactory(
         views.setOnClickFillInIntent(R.id.item_description, fillInIntent)
         views.setOnClickFillInIntent(R.id.item_date, fillInIntent)
         views.setOnClickFillInIntent(R.id.widget_rss_item, fillInIntent)
+
+        val themedContext = getThemedContextForWidget(context, prefs.themeMode)
+
+        val colorTitle = themedContext.getColorResCompat(android.R.attr.colorForeground)
+        val colorDesc = themedContext.getColorResCompat(android.R.attr.textColorPrimary)
+        val colorSecondary = themedContext.getColorResCompat(android.R.attr.colorSecondary)
+        val colorTextSecondary = themedContext.getColorResCompat(android.R.attr.textColorSecondary)
+
+        views.setTextColor(R.id.item_title, colorTitle)
+        views.setTextColor(R.id.item_description, colorDesc)
+        views.setTextColor(R.id.item_date, colorSecondary)
+        views.setTextColor(R.id.item_source, colorTextSecondary)
         return views
     }
 
     fun markItemRead(views: RemoteViews, item: RssItem) {
-        val configurationContext = getThemedContextForWidget(context)
+        val configurationContext = getThemedContextForWidget(context, prefs.themeMode)
         val colorSecondary = configurationContext.getColorResCompat(android.R.attr.colorSecondary)
         val colorTextSecondary = configurationContext.getColorResCompat(android.R.attr.textColorSecondary)
         val colorTitle = configurationContext.getColorResCompat(android.R.attr.colorForeground)
@@ -187,7 +199,7 @@ class RssRemoteViewsFactory(
     }
 
     override fun getLoadingView(): RemoteViews {
-        return setBgTransparency(context, RemoteViews(context.packageName, R.layout.widget_rss_loading), R.id.widget_rss_loading, prefs.transparency)
+        return setBgTransparency(context, RemoteViews(context.packageName, R.layout.widget_rss_loading), R.id.widget_rss_loading, prefs.transparency, prefs.themeMode)
     }
 
     override fun getItemId(position: Int): Long = position.toLong()

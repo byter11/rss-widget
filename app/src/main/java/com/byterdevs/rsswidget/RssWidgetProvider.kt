@@ -55,7 +55,8 @@ class RssWidgetProvider : AppWidgetProvider() {
                 context,
                 RemoteViews(context.packageName, R.layout.widget_rss),
                 R.id.widget_rss,
-                prefs.transparency
+                prefs.transparency,
+                prefs.themeMode
             )
 
             val showHeader = prefs.showHeaderBar
@@ -103,6 +104,8 @@ class RssWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             )
             views.setOnClickPendingIntent(R.id.btn_settings, settingsPendingIntent)
+
+            ThemeUtils.applyThemeToWidget(context, views, prefs.themeMode, prefs.transparency)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
             appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list)

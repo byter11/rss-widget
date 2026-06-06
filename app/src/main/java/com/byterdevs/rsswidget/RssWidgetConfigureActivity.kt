@@ -28,6 +28,7 @@ class RssWidgetConfigureActivity : Activity() {
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
     private val urlInput: TextInputEditText get() = findViewById(R.id.edit_rss_url)
     private val buttonAddFeed: MaterialButton get() = findViewById(R.id.button_add_feed)
+    private val themeToggleGroup: MaterialButtonToggleGroup get() = findViewById(R.id.theme_toggle_group)
     private val addButton: MaterialButton get() = findViewById(R.id.button_add)
     private val titleEdit: TextInputEditText get() = findViewById(R.id.edit_widget_title)
 
@@ -169,6 +170,12 @@ class RssWidgetConfigureActivity : Activity() {
                 return@setOnClickListener
             }
 
+            val themeMode = when (themeToggleGroup.checkedButtonId) {
+                R.id.btn_theme_light -> ThemeMode.LIGHT
+                R.id.btn_theme_dark -> ThemeMode.DARK
+                else -> ThemeMode.SYSTEM
+            }
+
             val prefs = WidgetPrefs(
                 urls = urls,
                 title = title,
@@ -186,6 +193,7 @@ class RssWidgetConfigureActivity : Activity() {
                 dimReadItems = switchDimRead.isChecked,
                 readerType = ReaderType.entries[openLinkSpinner.selectedItemPosition],
                 showHeaderBar = switchShowHeaderBar.isChecked,
+                themeMode = themeMode,
             )
 
             applicationContext.setWidgetPrefs(appWidgetId, prefs)
@@ -259,6 +267,13 @@ class RssWidgetConfigureActivity : Activity() {
         openLinkSpinner.setSelection(prefs.readerType.ordinal)
         switchShowHeaderBar.isChecked = prefs.showHeaderBar
         titleEdit.visibility = if (switchShowHeaderBar.isChecked) View.VISIBLE else View.GONE
+
+        val themeBtnId = when (prefs.themeMode) {
+            ThemeMode.LIGHT -> R.id.btn_theme_light
+            ThemeMode.DARK -> R.id.btn_theme_dark
+            ThemeMode.SYSTEM -> R.id.btn_theme_system
+        }
+        themeToggleGroup.check(themeBtnId)
     }
 }
 
@@ -282,6 +297,7 @@ data class WidgetPrefs(
     val dimReadItems: Boolean,
     val readerType: ReaderType,
     val showHeaderBar: Boolean = true,
+    val themeMode: ThemeMode,
 )
 
 fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
@@ -302,6 +318,7 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         dimReadItems = prefs.getBoolean(widgetPrefKey(appWidgetId, "dim_read"), false),
         readerType = ReaderType.entries[prefs.getInt(widgetPrefKey(appWidgetId, "reader_type"), 0)],
         showHeaderBar = prefs.getBoolean(widgetPrefKey(appWidgetId, "show_header_bar"), true),
+        themeMode = ThemeMode.entries[prefs.getInt(widgetPrefKey(appWidgetId, "theme_mode"), 0)],
     )
 }
 
@@ -321,6 +338,7 @@ fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
         putBoolean(widgetPrefKey(appWidgetId, "dim_read"), prefs.dimReadItems)
         putInt(widgetPrefKey(appWidgetId, "reader_type"), prefs.readerType.ordinal)
         putBoolean(widgetPrefKey(appWidgetId, "show_header_bar"), prefs.showHeaderBar)
+        putInt(widgetPrefKey(appWidgetId, "theme_mode"), prefs.themeMode.ordinal)
     }
 }
 

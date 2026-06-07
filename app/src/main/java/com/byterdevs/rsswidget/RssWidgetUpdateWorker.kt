@@ -101,6 +101,7 @@ class RssWidgetUpdateWorker(
             }
         } catch (e: Exception) {
             Log.e("RssWidgetUpdateWorker", "Error fetching $rssUrl: $e")
+            e.printStackTrace()
             emptyList()
         } finally {
             connection.disconnect()
@@ -166,7 +167,7 @@ class RssWidgetUpdateWorker(
     }
 
     private fun bestMediaContent(entry: SyndEntry): String? {
-        var bestWidth = -1
+        var bestWidth: Int? = null
         var imageUrl: String? = null
         val mediaModule = entry.getModule(MediaEntryModule.URI) as MediaEntryModule?
         if (mediaModule == null) {
@@ -175,7 +176,7 @@ class RssWidgetUpdateWorker(
 
         for (mediaContent in mediaModule.mediaContents) {
             (mediaContent.reference as? UrlReference)?.url.let {
-                if (bestWidth < mediaContent.width) {
+                if (mediaContent.width != null || bestWidth == null || bestWidth < mediaContent.width) {
                     imageUrl = it.toString()
                     bestWidth = mediaContent.width
                 }
@@ -186,7 +187,7 @@ class RssWidgetUpdateWorker(
     }
 
     private fun bestThumbnail(entry: SyndEntry): String? {
-        var bestWidth = -1
+        var bestWidth: Int? = null
         var imageUrl: String? = null
         val mediaModule = entry.getModule(MediaEntryModule.URI) as MediaEntryModule?
         if (mediaModule == null) {
@@ -194,7 +195,7 @@ class RssWidgetUpdateWorker(
         }
 
         for (thumbnail in mediaModule.metadata.thumbnail) {
-            if (bestWidth < thumbnail.width) {
+            if (thumbnail.width == null || bestWidth == null || bestWidth < thumbnail.width) {
                 imageUrl = thumbnail.url.toString()
                 bestWidth = thumbnail.width
             }

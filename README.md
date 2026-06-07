@@ -18,11 +18,17 @@
 
 ## Features
 
-- Add any RSS feed URL and display articles in a widget
-- Customizable widget header/title
-- Show/hide article descriptions
-- Set maximum number of items to display
-- Material You dynamic colors with configurable transparency
+- <b>Multi-Feed Support:</b> Consolidate multiple RSS feeds into a single, unified widget for a centralized news experience.
+- <b>Integrated Reader Mode:</b> Access article content through a distraction-free popup, allowing for quick reading without switching applications.
+- <b>Rich Media Support:</b> High-quality image integration enhances the visual presentation of your feeds.
+- <b>Material You Design:</b> Full support for Material Design 3 and dynamic coloring, automatically adapting to your system wallpaper and theme.
+
+<b>Customization & Controls:</b>
+
+- <b>Visual Flexibility:</b> Adjust widget opacity, customize headers, and toggle the visibility of article descriptions or sources to match your preference.
+- <b>Reading Management:</b> Optional dimming for read articles and flexible timestamp formats (relative or absolute).
+- <b>Advanced Refreshing:</b> Set custom background refresh intervals or use a manual refresh button, which can be hidden for a more minimalist look.
+- <b>Data Persistence:</b> Built for reliability with local data storage and optimized network handling.
 
 ## Screenshots
 

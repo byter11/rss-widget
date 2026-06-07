@@ -105,7 +105,7 @@ class RssWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.btn_settings, settingsPendingIntent)
 
-            ThemeUtils.applyThemeToWidget(context, views, prefs.themeMode, prefs.transparency)
+            ThemeUtils.applyThemeToWidget(context, views, prefs.themeMode)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
             appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list)

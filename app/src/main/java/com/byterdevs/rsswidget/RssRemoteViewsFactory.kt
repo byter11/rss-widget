@@ -190,7 +190,6 @@ class RssRemoteViewsFactory(
             views.setTextColor(R.id.item_date, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
             views.setTextColor(R.id.item_source, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
         } else {
-
             views.setTextColor(R.id.item_title, colorTitle)
             views.setTextColor(R.id.item_description, colorDesc)
             views.setTextColor(R.id.item_date, colorSecondary)

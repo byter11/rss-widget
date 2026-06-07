@@ -46,13 +46,37 @@ object ThemeUtils {
         return android.graphics.Color.BLACK
     }
 
+    fun getBackgroundResource(transparency: Float): Int {
+        return when (transparency) {
+            in 0.0 .. 0.0 -> R.drawable.background_0_0
+            in 0.0..0.1 -> R.drawable.background_0_1
+            in 0.1..0.2 -> R.drawable.background_0_2
+            in 0.2..0.3 -> R.drawable.background_0_3
+            in 0.3..0.4 -> R.drawable.background_0_4
+            in 0.4..0.5 -> R.drawable.background_0_5
+            in 0.5..0.6 -> R.drawable.background_0_6
+            in 0.6..0.7 -> R.drawable.background_0_7
+            in 0.7..0.8 -> R.drawable.background_0_8
+            in 0.8..0.9 -> R.drawable.background_0_9
+            in 0.9..1.0 -> R.drawable.background_1_0
+            else -> R.drawable.background_1_0
+        }
+    }
+
+    fun setBgTransparency(context: Context, views: RemoteViews, viewName: Int, transparency: Float): RemoteViews {
+        views.setInt(viewName, "setBackgroundResource", getBackgroundResource(transparency/100))
+        return views
+    }
+
     fun setBgTransparency(context: Context, views: RemoteViews, viewId: Int, transparency: Float, themeMode: ThemeMode): RemoteViews {
+        if (themeMode == ThemeMode.SYSTEM) return setBgTransparency(context, views, viewId, transparency)
+
         val themedContext = getThemedContextForWidget(context, themeMode)
         val backgroundColor = themedContext.getColorResCompat(android.R.attr.colorBackground)
-        
+
         // We set the base drawable to a solid white shape (background_1_0 should be white)
         views.setInt(viewId, "setBackgroundResource", R.drawable.background_1_0)
-        
+
         // Calculate alpha based on transparency (0-100)
         val alpha = (transparency * 2.55f).toInt().coerceIn(0, 255)
         // Combine background color with alpha
@@ -60,6 +84,8 @@ object ThemeUtils {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             views.setColorStateList(viewId, "setBackgroundTintList", android.content.res.ColorStateList.valueOf(colorWithAlpha))
+        } else {
+            views.setInt(viewId, "setBackgroundColor", colorWithAlpha)
         }
 
         return views
@@ -68,7 +94,9 @@ object ThemeUtils {
     /**
      * Applies theme colors to the main widget container and header.
      */
-    fun applyThemeToWidget(context: Context, views: RemoteViews, themeMode: ThemeMode, transparency: Float) {
+    fun applyThemeToWidget(context: Context, views: RemoteViews, themeMode: ThemeMode) {
+        if (themeMode == ThemeMode.SYSTEM) return
+
         val themedContext = getThemedContextForWidget(context, themeMode)
 
         // Header Text
@@ -81,18 +109,7 @@ object ThemeUtils {
 
         // Icons
         val iconColor = themedContext.getColorResCompat(android.R.attr.textColorSecondary)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            views.setColorStateList(
-                R.id.btn_settings,
-                "setImageTintList",
-                ColorStateList.valueOf(iconColor)
-            )
-            views.setColorStateList(
-                R.id.btn_refresh,
-                "setImageTintList",
-                ColorStateList.valueOf(iconColor)
-            )
-        }
+        views.setInt(R.id.btn_settings, "setColorFilter", iconColor)
+        views.setInt(R.id.btn_refresh, "setColorFilter", iconColor)
     }
 }

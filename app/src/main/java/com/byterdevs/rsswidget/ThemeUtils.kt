@@ -95,8 +95,6 @@ object ThemeUtils {
      * Applies theme colors to the main widget container and header.
      */
     fun applyThemeToWidget(context: Context, views: RemoteViews, themeMode: ThemeMode) {
-        if (themeMode == ThemeMode.SYSTEM) return
-
         val themedContext = getThemedContextForWidget(context, themeMode)
 
         // Header Text

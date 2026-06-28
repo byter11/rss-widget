@@ -71,19 +71,10 @@ class RssWidgetUpdateWorker(
                     plainDescription.take(prefs.descriptionLength) + "..."
                 else plainDescription
 
-                val source = when {
-                    rssUrl.contains("reddit.com", ignoreCase = true) -> {
-                        val subreddit = rssUrl.substringAfter("/r/").substringBefore("/").trim()
-                        if (subreddit.isNotEmpty() && subreddit != rssUrl) "Reddit /r/$subreddit" else "Reddit"
-                    }
-                    feedTitle.isNotEmpty() -> feedTitle
-                    else -> {
-                        try {
-                            val host = URL(link).host
-                            if (host.startsWith("www.")) host.substring(4) else host
-                        } catch (e: Exception) { "" }
-                    }
-                }
+                val source = try {
+                    val host = URL(link).host
+                    if (host.startsWith("www.")) host.substring(4) else host
+                } catch (e: Exception) { feedTitle }
 
                 val localImageUri = if (prefs.showImages) getImageUrl(entry)?.let {
                     getLocalImageUri(applicationContext, appWidgetId, it)

@@ -2,3 +2,5 @@
 - Removed the [OBJ] artifact from article descriptions.
 - Sorted items by date in DB when multiple feeds are added.
 - Improved configuration layout to prevent navigation bar overlap.
+
+Note: Lost the app signing key used in previous versions, so it requires a clean uninstall + reinstall now. Sorry :(

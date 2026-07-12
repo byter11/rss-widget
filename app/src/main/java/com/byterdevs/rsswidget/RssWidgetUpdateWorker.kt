@@ -120,18 +120,7 @@ class RssWidgetUpdateWorker(
     private fun getLocalImageUri(context: Context, appWidgetId: Int, imageUrl: String?): String? {
         if (imageUrl == null || !imageUrl.startsWith("http")) return null
         val cachedFile = downloadAndCacheImage(context, appWidgetId, imageUrl)
-        return cachedFile?.let {
-            try {
-                val uri = androidx.core.content.FileProvider.getUriForFile(
-                    context,
-                    context.packageName + ".fileprovider",
-                    it
-                )
-                uri.toString()
-            } catch (e: Exception) {
-                null
-            }
-        }
+        return cachedFile?.absolutePath
     }
 
     // Helper function to download and cache image
@@ -215,6 +204,8 @@ class RssWidgetUpdateWorker(
         prefs.urls.forEach { url ->
             entities.addAll(fetchRssItems(appWidgetId, url))
         }
+
+        entities.sortByDescending { it.date ?: 0L }
 
         if (!entities.isEmpty()) {
             dao.clearItemsForWidget(appWidgetId)

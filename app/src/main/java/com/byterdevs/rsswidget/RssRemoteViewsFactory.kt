@@ -126,16 +126,20 @@ class RssRemoteViewsFactory(
         }
         // Show image if available
         if (item.image != null && item.image.isNotEmpty()) {
-            val imageUri = item.image.toUri()
             views.setViewVisibility(R.id.item_image, android.view.View.VISIBLE)
             try {
-                context.contentResolver.openInputStream(imageUri)?.use { inputStream ->
-                    val bitmap = BitmapFactory.decodeStream(inputStream)
-                    if (bitmap != null) {
-                        views.setImageViewBitmap(R.id.item_image, bitmap)
-                    } else {
-                        views.setViewVisibility(R.id.item_image, android.view.View.GONE)
+                val bitmap = if (item.image.startsWith("content://")) {
+                    context.contentResolver.openInputStream(item.image.toUri())?.use {
+                        BitmapFactory.decodeStream(it)
                     }
+                } else {
+                    BitmapFactory.decodeFile(item.image)
+                }
+
+                if (bitmap != null) {
+                    views.setImageViewBitmap(R.id.item_image, bitmap)
+                } else {
+                    views.setViewVisibility(R.id.item_image, android.view.View.GONE)
                 }
             } catch (e: Exception) {
                 Log.e("RssRemoteViewsFactory", "Failed to load image bitmap", e)

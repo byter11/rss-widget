@@ -1,0 +1,4 @@
+- Fixed image display issues on Android 17 (permission errors).
+- Removed the [OBJ] artifact from article descriptions.
+- Sorted items by date in DB when multiple feeds are added.
+- Improved configuration layout to prevent navigation bar overlap.

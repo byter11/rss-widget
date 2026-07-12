@@ -66,7 +66,11 @@ class RssWidgetUpdateWorker(
                 val rawDescription = entry.description?.value
                     ?: entry.contents.firstOrNull()?.value
                     ?: ""
-                val plainDescription = HtmlCompat.fromHtml(rawDescription, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().replace("\n", " ").trim()
+                val plainDescription = HtmlCompat.fromHtml(rawDescription, HtmlCompat.FROM_HTML_MODE_LEGACY)
+                    .toString()
+                    .replace("\uFFFC", "")
+                    .replace("\n", " ")
+                    .trim()
                 val description = if (prefs.descriptionLength > 0 && plainDescription.length > prefs.descriptionLength)
                     plainDescription.take(prefs.descriptionLength) + "..."
                 else plainDescription

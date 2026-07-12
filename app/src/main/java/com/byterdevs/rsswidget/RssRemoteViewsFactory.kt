@@ -3,7 +3,6 @@ package com.byterdevs.rsswidget
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Parcelable
 import android.util.Log
 import android.util.TypedValue
@@ -17,8 +16,9 @@ import com.byterdevs.rsswidget.ThemeUtils.getThemedContextForWidget
 import com.byterdevs.rsswidget.ThemeUtils.setBgTransparency
 import kotlinx.parcelize.Parcelize
 import org.ocpsoft.prettytime.PrettyTime
+import android.graphics.BitmapFactory
 import android.text.format.DateFormat
-import com.byterdevs.rsswidget.room.RssItemDao
+import com.byterdevs.rsswidget.room.RssDatabase
 import java.util.Calendar
 import java.util.Date
 import kotlinx.coroutines.*
@@ -64,7 +64,7 @@ class RssRemoteViewsFactory(
         }
     }
 
-    fun loadItems(dao: RssItemDao) = runBlocking {
+    fun loadItems() = runBlocking {
         val db = com.byterdevs.rsswidget.room.RssDatabase.getInstance(context)
         val dao = db.rssItemDao()
         try {
@@ -104,11 +104,8 @@ class RssRemoteViewsFactory(
         prefs = context.getWidgetPrefs(appWidgetId)
         error = false
         items.clear()
-        context.cacheDir.delete()
 
-        val db = com.byterdevs.rsswidget.room.RssDatabase.getInstance(context)
-        val dao = db.rssItemDao()
-        loadItems(dao)
+        loadItems()
     }
 
     override fun getCount(): Int {
@@ -131,12 +128,19 @@ class RssRemoteViewsFactory(
         if (item.image != null && item.image.isNotEmpty()) {
             val imageUri = item.image.toUri()
             views.setViewVisibility(R.id.item_image, android.view.View.VISIBLE)
-            val launcherPackageName = context.packageManager.resolveActivity(
-                Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_HOME),
-                PackageManager.MATCH_DEFAULT_ONLY
-            )?.activityInfo?.packageName
-            context.grantUriPermission(launcherPackageName, imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            views.setImageViewUri(R.id.item_image, imageUri)
+            try {
+                context.contentResolver.openInputStream(imageUri)?.use { inputStream ->
+                    val bitmap = BitmapFactory.decodeStream(inputStream)
+                    if (bitmap != null) {
+                        views.setImageViewBitmap(R.id.item_image, bitmap)
+                    } else {
+                        views.setViewVisibility(R.id.item_image, android.view.View.GONE)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("RssRemoteViewsFactory", "Failed to load image bitmap", e)
+                views.setViewVisibility(R.id.item_image, android.view.View.GONE)
+            }
         } else {
             views.setViewVisibility(R.id.item_image, android.view.View.GONE)
         }
@@ -205,7 +209,6 @@ class RssRemoteViewsFactory(
     override fun hasStableIds(): Boolean = true
     override fun onDestroy() {
         items.clear()
-        context.cacheDir.delete()
     }
 
     @Parcelize

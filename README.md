@@ -7,12 +7,17 @@
 <p align="center">
 
 <div align="center" style="display: flex; justify-content: center; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+    <a href="https://play.google.com/store/apps/details?id=com.byterdevs.rsswidget">
+    <img src="https://raw.githubusercontent.com/pioug/google-play-badges/84247f16ddb0ebd9cfc2459085c2b6c7a43f3237/svg/en.svg" width="240" alt="Get it on Google Play"/>
+  </a>
+  <br/>
   <a href="https://f-droid.org/packages/com.byterdevs.rsswidget">
     <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" width="170" alt="Get it on F-Droid"/>
   </a>
   <a href="https://github.com/byter11/rss-widget/releases">
     <img src="assets/get-it-on-github.png" height="64" alt="Get it on Github" />
   </a>
+  <br/>
 </div>
 
 

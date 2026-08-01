@@ -27,6 +27,7 @@ class RssWidgetUpdateWorker(
     override fun doWork(): Result {
         val appWidgetId = inputData.getInt("appWidgetId", AppWidgetManager.INVALID_APPWIDGET_ID)
         if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            Log.e("RssWidgetUpdateWorker", "Invalid appWidgetId received in worker")
             return Result.failure()
         }
         val hardRefresh = inputData.getBoolean("hardRefresh", false)
@@ -211,7 +212,15 @@ class RssWidgetUpdateWorker(
             dao.clearItemsForWidget(appWidgetId)
             clearStaleImages(applicationContext, appWidgetId)
             dao.insertAll(entities)
+            
+            val now = System.currentTimeMillis()
+            Log.d("RssWidgetUpdateWorker", "Updating lastUpdated to $now for widget $appWidgetId")
+            val updatedPrefs = prefs.copy(lastUpdated = now)
+            applicationContext.setWidgetPrefs(appWidgetId, updatedPrefs)
+
             Log.i("RssWidgetUpdateWorker", "Loaded ${entities.size} articles for widget $appWidgetId")
+        } else {
+            Log.w("RssWidgetUpdateWorker", "No entities fetched for widget $appWidgetId")
         }
     }
 }

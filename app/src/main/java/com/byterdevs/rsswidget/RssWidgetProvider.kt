@@ -14,6 +14,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 class RssWidgetProvider : AppWidgetProvider() {
@@ -63,6 +64,19 @@ class RssWidgetProvider : AppWidgetProvider() {
 
             val showHeader = prefs.showHeaderBar
             views.setTextViewText(R.id.widget_title, prefs.title)
+            
+            if (showHeader && prefs.lastUpdated > 0) {
+                val dateStr = DateUtils.formatDate(Date(prefs.lastUpdated), "relative")
+                if (dateStr.isNotEmpty()) {
+                    views.setTextViewText(R.id.widget_last_updated, "Updated $dateStr")
+                    views.setViewVisibility(R.id.widget_last_updated, android.view.View.VISIBLE)
+                } else {
+                    views.setViewVisibility(R.id.widget_last_updated, android.view.View.GONE)
+                }
+            } else {
+                views.setViewVisibility(R.id.widget_last_updated, android.view.View.GONE)
+            }
+
             views.setViewVisibility(R.id.control_bar, if (showHeader) android.view.View.VISIBLE else android.view.View.GONE)
             views.setViewVisibility(R.id.widget_title, if (showHeader) android.view.View.VISIBLE else android.view.View.GONE)
             views.setViewVisibility(R.id.header_divider, if (showHeader) android.view.View.VISIBLE else android.view.View.GONE)

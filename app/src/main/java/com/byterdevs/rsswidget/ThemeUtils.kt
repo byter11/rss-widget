@@ -101,6 +101,8 @@ object ThemeUtils {
         // Header Text
         val titleColor = themedContext.getColorResCompat(android.R.attr.textColorPrimary)
         views.setTextColor(R.id.widget_title, titleColor)
+        val subtitleColor = themedContext.getColorResCompat(android.R.attr.textColorSecondary)
+        views.setTextColor(R.id.widget_last_updated, subtitleColor)
 
         // Divider
         val dividerColor = themedContext.getColorResCompat(android.R.attr.textColorSecondary)

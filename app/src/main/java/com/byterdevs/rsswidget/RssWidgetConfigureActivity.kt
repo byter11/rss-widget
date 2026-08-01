@@ -187,6 +187,7 @@ class RssWidgetConfigureActivity : Activity() {
                 else -> ThemeMode.SYSTEM
             }
 
+            val oldPrefs = applicationContext.getWidgetPrefs(appWidgetId)
             val prefs = WidgetPrefs(
                 urls = urls,
                 title = title,
@@ -207,6 +208,7 @@ class RssWidgetConfigureActivity : Activity() {
                 showHeaderBar = switchShowHeaderBar.isChecked,
                 themeMode = themeMode,
                 compactMode = switchCompactMode.isChecked,
+                lastUpdated = oldPrefs.lastUpdated
             )
 
             applicationContext.setWidgetPrefs(appWidgetId, prefs)
@@ -316,6 +318,7 @@ data class WidgetPrefs(
     val showHeaderBar: Boolean = true,
     val themeMode: ThemeMode,
     val compactMode: Boolean = false,
+    val lastUpdated: Long = 0L,
 )
 
 fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
@@ -338,6 +341,7 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         showHeaderBar = prefs.getBoolean(widgetPrefKey(appWidgetId, "show_header_bar"), true),
         themeMode = ThemeMode.entries[prefs.getInt(widgetPrefKey(appWidgetId, "theme_mode"), 0)],
         compactMode = prefs.getBoolean(widgetPrefKey(appWidgetId, "compact_mode"), false),
+        lastUpdated = prefs.getLong(widgetPrefKey(appWidgetId, "last_updated"), 0L),
     )
 }
 
@@ -359,6 +363,7 @@ fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
         putBoolean(widgetPrefKey(appWidgetId, "show_header_bar"), prefs.showHeaderBar)
         putInt(widgetPrefKey(appWidgetId, "theme_mode"), prefs.themeMode.ordinal)
         putBoolean(widgetPrefKey(appWidgetId, "compact_mode"), prefs.compactMode)
+        putLong(widgetPrefKey(appWidgetId, "last_updated"), prefs.lastUpdated)
     }
 }
 

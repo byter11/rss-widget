@@ -15,11 +15,8 @@ import androidx.core.net.toUri
 import com.byterdevs.rsswidget.ThemeUtils.getThemedContextForWidget
 import com.byterdevs.rsswidget.ThemeUtils.setBgTransparency
 import kotlinx.parcelize.Parcelize
-import org.ocpsoft.prettytime.PrettyTime
 import android.graphics.BitmapFactory
-import android.text.format.DateFormat
 import com.byterdevs.rsswidget.room.RssDatabase
-import java.util.Calendar
 import java.util.Date
 import kotlinx.coroutines.*
 
@@ -45,23 +42,6 @@ class RssRemoteViewsFactory(
     }
     override fun onCreate() {
         prefs = context.getWidgetPrefs(appWidgetId)
-    }
-
-    fun formatAsTodayOrFullDate(date: java.util.Date): String {
-        return if (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) == date.date) {
-            "Today, " + DateFormat.format("h:mm a", date).toString()
-        } else {
-            DateFormat.format("MMM d, yyyy h:mm a", date).toString()
-        }
-    }
-
-    fun formatDate(date: java.util.Date?): String {
-        if (date == null || prefs.dateFormat == "off") return ""
-        return if (prefs.dateFormat == "absolute") {
-            formatAsTodayOrFullDate(date)
-        } else {
-            PrettyTime().format(date)
-        }
     }
 
     fun loadItems() = runBlocking {
@@ -149,7 +129,7 @@ class RssRemoteViewsFactory(
         } else {
             views.setViewVisibility(R.id.item_image, android.view.View.GONE)
         }
-        val formattedDate = formatDate(item.date)
+        val formattedDate = DateUtils.formatDate(item.date, prefs.dateFormat)
         if (formattedDate.isNotEmpty()) {
             views.setViewVisibility(R.id.item_date, android.view.View.VISIBLE)
             views.setTextViewText(R.id.item_date, formattedDate)

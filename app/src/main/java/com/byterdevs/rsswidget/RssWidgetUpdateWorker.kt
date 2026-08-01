@@ -12,10 +12,14 @@ import com.byterdevs.rsswidget.room.RssItemEntity
 import com.rometools.modules.mediarss.MediaEntryModule
 import com.rometools.modules.mediarss.types.UrlReference
 import com.rometools.rome.feed.synd.SyndEntry
+import com.rometools.rome.feed.synd.SyndFeed
 import com.rometools.rome.io.SyndFeedInput
 import com.rometools.rome.io.XmlReader
 import kotlinx.coroutines.runBlocking
+import java.io.IOException
 import java.net.HttpURLConnection
+import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.net.URL
 import java.util.UUID
 
@@ -51,17 +55,10 @@ class RssWidgetUpdateWorker(
     }
 
     private fun fetchRssItems(appWidgetId: Int, rssUrl: String): List<RssItemEntity> {
-        val feedUrl = URL(rssUrl)
         val prefs = applicationContext.getWidgetPrefs(appWidgetId)
-        val input = SyndFeedInput()
-        val connection = feedUrl.openConnection() as HttpURLConnection
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:48.0) Gecko/48.0 Firefox/48.0")
-        connection.connectTimeout = 10000
-        connection.readTimeout = 15000
 
         return try {
-            connection.connect()
-            val feed = input.build(XmlReader(connection.inputStream))
+            val feed = fetchFeedWithRetry(rssUrl)
             val feedTitle = feed.title?.trim() ?: ""
 
             feed.entries.map { entry ->
@@ -100,13 +97,78 @@ class RssWidgetUpdateWorker(
             }
         } catch (e: Exception) {
             Log.e("RssWidgetUpdateWorker", "Error fetching $rssUrl: $e")
-            e.printStackTrace()
             emptyList()
+        }
+    }
+
+    private fun fetchFeedWithRetry(
+        rssUrl: String,
+        maxAttempts: Int = 3
+    ): SyndFeed {
+        var lastError: Exception? = null
+
+        repeat(maxAttempts) { attempt ->
+            try {
+                return fetchFeedOnce(rssUrl)
+            } catch (e: Exception) {
+                lastError = e
+                val retryable = e is SocketException ||
+                        e is SocketTimeoutException ||
+                        (e is IOException && e.message?.contains("EOF") == true)
+
+                if (!retryable || attempt == maxAttempts - 1) {
+                    throw e
+                }
+                Log.w("RssWidgetUpdateWorker", "Retrying $rssUrl after ${e.javaClass.simpleName} (attempt ${attempt + 1})")
+                Thread.sleep(500L * (attempt + 1)) // simple backoff: 500ms, 1000ms...
+            }
+        }
+        throw lastError ?: IllegalStateException("Unreachable")
+    }
+
+    private fun fetchFeedOnce(rssUrl: String): SyndFeed {
+        val feedUrl = URL(rssUrl)
+        var connection = feedUrl.openConnection() as HttpURLConnection
+        configureConnection(connection)
+        connection.connect()
+
+        // Follow redirects manually — some feeds 301/302 before serving RSS
+        var redirects = 0
+        while (connection.responseCode in intArrayOf(301, 302, 303, 307, 308) && redirects < 5) {
+            val newUrl = connection.getHeaderField("Location")
+                ?: throw IOException("Redirect with no Location header")
+            connection.disconnect()
+            connection = URL(newUrl).openConnection() as HttpURLConnection
+            configureConnection(connection)
+            connection.connect()
+            redirects++
+        }
+
+        val code = connection.responseCode
+        if (code !in 200..299) {
+            val errorBody = connection.errorStream?.bufferedReader()?.readText()?.take(200)
+            connection.disconnect()
+            throw IOException("HTTP $code for $rssUrl: $errorBody")
+        }
+
+        return try {
+            SyndFeedInput().build(XmlReader(connection.inputStream))
         } finally {
             connection.disconnect()
         }
     }
 
+    private fun configureConnection(connection: HttpURLConnection) {
+        connection.setRequestProperty(
+            "User-Agent",
+            "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36"
+        )
+        connection.setRequestProperty("Accept", "application/rss+xml, application/xml, text/xml, */*")
+        connection.setRequestProperty("Connection", "close") // avoid stale keep-alive socket reuse
+        connection.instanceFollowRedirects = false // handled manually above
+        connection.connectTimeout = 10_000
+        connection.readTimeout = 15_000
+    }
     private fun clearStaleImages(context: Context, appWidgetId: Int) {
         for (f in context.cacheDir.listFiles()!!) {
             // Don't delete images for other widgets

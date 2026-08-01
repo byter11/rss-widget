@@ -1,0 +1,6 @@
+- Allowed insecure HTTP feeds and webviews.
+- Added an option to hide article timestamp.
+- Added widget last updated indicator on the header.
+- Fixed refresh bug where layout reverted to previous after changing settings.
+- Added a compact mode, with truncated single line titles, reduced font sizes and margins, and thumbnails for images.
+- Added retries for network calls; updated user agent to avoid being blocked.

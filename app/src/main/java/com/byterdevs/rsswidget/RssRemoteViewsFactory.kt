@@ -74,6 +74,7 @@ class RssRemoteViewsFactory(
     }
 
     override fun onDataSetChanged() {
+        Log.d("RssRemoteViewsFactory", "onDataSetChanged start: id=$appWidgetId")
         synchronized(refreshLock) {
             if (isRefreshing) {
                 Log.d("RssRemoteViewsFactory", "Refresh already in progress, ignoring this request.")
@@ -82,6 +83,7 @@ class RssRemoteViewsFactory(
             isRefreshing = true
         }
         prefs = context.getWidgetPrefs(appWidgetId)
+        Log.d("RssRemoteViewsFactory", "onDataSetChanged: prefs reloaded, compact=${prefs.compactMode}")
         error = false
         items.clear()
 
@@ -95,6 +97,7 @@ class RssRemoteViewsFactory(
     override fun getViewTypeCount(): Int = 2
 
     override fun getViewAt(position: Int): RemoteViews {
+        Log.d("RssRemoteViewsFactory", "getViewAt: pos=$position, compact=${prefs.compactMode}")
         val item = items[position]
         val layoutRes = if (prefs.compactMode) R.layout.widget_rss_item_compact else R.layout.widget_rss_item
         val views = RemoteViews(context.packageName, layoutRes)

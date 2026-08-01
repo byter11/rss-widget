@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.os.Build
+import android.util.Log
 import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.widget.RemoteViews
@@ -69,6 +70,7 @@ object ThemeUtils {
     }
 
     fun setBgTransparency(context: Context, views: RemoteViews, viewId: Int, transparency: Float, themeMode: ThemeMode, compactMode: Boolean = false): RemoteViews {
+        Log.d("ThemeUtils", "setBgTransparency: id=$viewId, compact=$compactMode, theme=$themeMode")
         if (!compactMode && themeMode == ThemeMode.SYSTEM) return setBgTransparency(context, views, viewId, transparency)
 
         val themedContext = getThemedContextForWidget(context, themeMode)
@@ -96,6 +98,7 @@ object ThemeUtils {
      * Applies theme colors to the main widget container and header.
      */
     fun applyThemeToWidget(context: Context, views: RemoteViews, themeMode: ThemeMode) {
+        Log.d("ThemeUtils", "applyThemeToWidget: theme=$themeMode")
         val themedContext = getThemedContextForWidget(context, themeMode)
 
         // Header Text

@@ -21,6 +21,7 @@ class RssWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(
         context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray
     ) {
+        Log.d("RssWidgetProvider", "onUpdate: ids=${appWidgetIds.joinToString()}")
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
@@ -28,13 +29,13 @@ class RssWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        Log.d("RssWidgetProvider", "onReceive triggered with action: ${intent.action}")
+        Log.d("RssWidgetProvider", "onReceive: action=${intent.action}")
 
         if (intent.action == "com.byterdevs.rsswidget.ACTION_REFRESH") {
             val appWidgetId = intent.getIntExtra(
                 AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID
             )
-            Log.d("RssWidgetProvider", "appWidgetId: $appWidgetId")
+            Log.d("RssWidgetProvider", "onReceive: ACTION_REFRESH id=$appWidgetId")
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 val workRequest = OneTimeWorkRequestBuilder<RssWidgetUpdateWorker>()
                     .addTag("rss_widget_manual_refresh_$appWidgetId")
@@ -43,6 +44,7 @@ class RssWidgetProvider : AppWidgetProvider() {
                     )
                     .build()
                 WorkManager.getInstance(context).enqueue(workRequest)
+                Log.d("RssWidgetProvider", "onReceive: Enqueued worker for refresh")
             }
         }
     }
@@ -52,7 +54,11 @@ class RssWidgetProvider : AppWidgetProvider() {
             context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int
         ) {
             val prefs = context.getWidgetPrefs(appWidgetId)
+            Log.d("RssWidgetProvider", "updateAppWidget: id=$appWidgetId, compact=${prefs.compactMode}, theme=${prefs.themeMode}")
+            
             val layoutRes = if (prefs.compactMode) R.layout.widget_rss_compact else R.layout.widget_rss
+            Log.d("RssWidgetProvider", "updateAppWidget: layout=${context.resources.getResourceEntryName(layoutRes)}")
+
             val views = setBgTransparency(
                 context,
                 RemoteViews(context.packageName, layoutRes),
@@ -64,10 +70,13 @@ class RssWidgetProvider : AppWidgetProvider() {
 
             val showHeader = prefs.showHeaderBar
             views.setTextViewText(R.id.widget_title, prefs.title)
-            
+
+            Log.d("RssWidgetProvider", "updateAppWidget: lastUpdated=${prefs.lastUpdated}")
             if (showHeader && prefs.lastUpdated > 0) {
-                val dateStr = DateUtils.formatDate(Date(prefs.lastUpdated), "relative")
+                val dateStr = DateUtils.formatDate(Date(prefs.lastUpdated), "absolute")
+                Log.d("RssWidgetProvider", "updateAppWidget: dateStr=$dateStr")
                 if (dateStr.isNotEmpty()) {
+                    Log.d("RssWidgetProvider", "updateAppWidget: dateStr=$dateStr")
                     views.setTextViewText(R.id.widget_last_updated, "Updated $dateStr")
                     views.setViewVisibility(R.id.widget_last_updated, android.view.View.VISIBLE)
                 } else {
@@ -123,26 +132,33 @@ class RssWidgetProvider : AppWidgetProvider() {
 
             ThemeUtils.applyThemeToWidget(context, views, prefs.themeMode)
 
+            Log.d("RssWidgetProvider", "updateAppWidget: updating widget")
             appWidgetManager.updateAppWidget(appWidgetId, views)
+
+            Thread.sleep(150)
+
+            Log.d("RssWidgetProvider", "updateAppWidget: notifying data change")
             appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list)
 
+            Log.d("RssWidgetProvider", "updateAppWidget: enqueuing periodic update")
             enqueuePeriodicUpdate(context, appWidgetId)
         }
 
         private fun enqueuePeriodicUpdate(context: Context, appWidgetId: Int) {
             val prefs = context.getWidgetPrefs(appWidgetId)
             if (prefs.updateInterval == 0) {
+                WorkManager.getInstance(context).cancelUniqueWork("rss_widget_update_$appWidgetId")
                 return
             }
 
             val workRequest = PeriodicWorkRequestBuilder<RssWidgetUpdateWorker>(
                 prefs.updateInterval.toLong(), TimeUnit.MINUTES
             ).addTag("rss_widget_update_$appWidgetId").setInputData(
-                Data.Builder().putInt("appWidgetId", appWidgetId).build()
+                Data.Builder().putInt(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId).build()
             ).build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                "rss_widget_update_$appWidgetId", ExistingPeriodicWorkPolicy.KEEP, workRequest
+                "rss_widget_update_$appWidgetId", ExistingPeriodicWorkPolicy.UPDATE, workRequest
             )
         }
     }

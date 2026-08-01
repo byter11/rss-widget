@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
@@ -214,9 +215,11 @@ class RssWidgetConfigureActivity : Activity() {
             )
 
             applicationContext.setWidgetPrefs(appWidgetId, prefs)
+            Log.d("RssWidgetConfigure", "addButton clicked: saved prefs for id=$appWidgetId, compact=${prefs.compactMode}")
 
 
             // Force refresh
+            Log.d("RssWidgetConfigure", "Sending ACTION_REFRESH broadcast")
             val intent = Intent("com.byterdevs.rsswidget.ACTION_REFRESH")
             intent.component = ComponentName(this, RssWidgetProvider::class.java)
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
@@ -351,8 +354,9 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
 }
 
 fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
+    Log.d("RssWidgetPrefs", "setWidgetPrefs: id=$appWidgetId, compact=${prefs.compactMode}")
     val sp = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    sp.edit {
+    sp.edit(commit = true) {
         putStringSet(widgetPrefKey(appWidgetId, "url"), prefs.urls)
         putString(widgetPrefKey(appWidgetId, "title"), prefs.title)
         putInt(widgetPrefKey(appWidgetId, "max"), prefs.maxItems)

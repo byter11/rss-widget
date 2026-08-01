@@ -25,24 +25,27 @@ class RssWidgetUpdateWorker(
     workerParams: WorkerParameters
 ) : Worker(appContext, workerParams) {
     override fun doWork(): Result {
-        val appWidgetId = inputData.getInt("appWidgetId", AppWidgetManager.INVALID_APPWIDGET_ID)
+        val appWidgetId = inputData.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+        Log.d("RssWidgetUpdateWorker", "doWork: appWidgetId=$appWidgetId")
         if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
             Log.e("RssWidgetUpdateWorker", "Invalid appWidgetId received in worker")
             return Result.failure()
         }
         val hardRefresh = inputData.getBoolean("hardRefresh", false)
+        Log.d("RssWidgetUpdateWorker", "doWork: hardRefresh=$hardRefresh")
 
         val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
         val db = RssDatabase.getInstance(applicationContext)
         val dao = db.rssItemDao()
 
         if (hardRefresh) {
-            Log.d("RssWidgetUpdateWorker", "Refresh request received")
+            Log.d("RssWidgetUpdateWorker", "doWork: clearing items for widget $appWidgetId")
             runBlocking { dao.clearItemsForWidget(appWidgetId) }
             RssWidgetProvider.updateAppWidget(applicationContext, appWidgetManager, appWidgetId)
         }
 
         updateRssFeed(appWidgetId, dao)
+        Log.d("RssWidgetUpdateWorker", "doWork: calling updateAppWidget after feed fetch")
         RssWidgetProvider.updateAppWidget(applicationContext, appWidgetManager, appWidgetId)
         return Result.success()
     }
@@ -208,14 +211,16 @@ class RssWidgetUpdateWorker(
 
         entities.sortByDescending { it.date ?: 0L }
 
-        if (!entities.isEmpty()) {
+        if (entities.isNotEmpty()) {
             dao.clearItemsForWidget(appWidgetId)
             clearStaleImages(applicationContext, appWidgetId)
             dao.insertAll(entities)
             
             val now = System.currentTimeMillis()
             Log.d("RssWidgetUpdateWorker", "Updating lastUpdated to $now for widget $appWidgetId")
-            val updatedPrefs = prefs.copy(lastUpdated = now)
+            // Re-read prefs to avoid overwriting other settings (like compactMode) changed during the network fetch
+            val latestPrefs = applicationContext.getWidgetPrefs(appWidgetId)
+            val updatedPrefs = latestPrefs.copy(lastUpdated = now)
             applicationContext.setWidgetPrefs(appWidgetId, updatedPrefs)
 
             Log.i("RssWidgetUpdateWorker", "Loaded ${entities.size} articles for widget $appWidgetId")

@@ -56,7 +56,7 @@ class RssRemoteViewsFactory(
     }
 
     fun formatDate(date: java.util.Date?): String {
-        if (date == null) return ""
+        if (date == null || prefs.dateFormat == "off") return ""
         return if (prefs.dateFormat == "absolute") {
             formatAsTodayOrFullDate(date)
         } else {
@@ -148,7 +148,13 @@ class RssRemoteViewsFactory(
         } else {
             views.setViewVisibility(R.id.item_image, android.view.View.GONE)
         }
-        views.setTextViewText(R.id.item_date, formatDate(item.date))
+        val formattedDate = formatDate(item.date)
+        if (formattedDate.isNotEmpty()) {
+            views.setViewVisibility(R.id.item_date, android.view.View.VISIBLE)
+            views.setTextViewText(R.id.item_date, formattedDate)
+        } else {
+            views.setViewVisibility(R.id.item_date, android.view.View.GONE)
+        }
         if (prefs.showSource && item.source.isNotEmpty()) {
             views.setViewVisibility(R.id.item_source, android.view.View.VISIBLE)
             views.setTextViewText(R.id.item_source, item.source)

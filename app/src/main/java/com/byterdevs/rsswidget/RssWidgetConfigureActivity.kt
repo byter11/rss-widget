@@ -195,10 +195,11 @@ class RssWidgetConfigureActivity : Activity() {
                 descriptionLength = if (switchTrimDescription.isChecked) sliderTrimDescription.value.toInt() else -1,
                 transparency = transparencySlider.value,
                 showSource = switchSource.isChecked,
-                dateFormat = if (toggleButtonGroup.checkedButtonId == toggleButtonGroup.getChildAt(
-                        0
-                    ).id
-                ) "relative" else "absolute",
+                dateFormat = when (toggleButtonGroup.checkedButtonId) {
+                    R.id.btn_date_relative -> "relative"
+                    R.id.btn_date_absolute -> "absolute"
+                    else -> "off"
+                },
                 updateInterval = intervalValues[updateIntervalSpinner.selectedItemPosition],
                 dimReadItems = switchDimRead.isChecked,
                 readerType = ReaderType.entries[openLinkSpinner.selectedItemPosition],
@@ -269,9 +270,12 @@ class RssWidgetConfigureActivity : Activity() {
         transparencySlider.value = prefs.transparency
         labelTransparency.text = getString(R.string.widget_transparency, transparencySlider.value.toInt())
         switchSource.isChecked = prefs.showSource
-        val relativeBtnId = toggleButtonGroup.getChildAt(0).id
-        val absoluteBtnId = toggleButtonGroup.getChildAt(1).id
-        toggleButtonGroup.check(if (prefs.dateFormat == "absolute") absoluteBtnId else relativeBtnId)
+        val dateBtnId = when (prefs.dateFormat) {
+            "relative" -> R.id.btn_date_relative
+            "absolute" -> R.id.btn_date_absolute
+            else -> R.id.btn_date_off
+        }
+        toggleButtonGroup.check(dateBtnId)
         val intervalIdx = intervalValues.indexOf(prefs.updateInterval)
         updateIntervalSpinner.setSelection(intervalIdx)
         openLinkSpinner.setSelection(prefs.readerType.ordinal)

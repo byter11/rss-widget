@@ -309,6 +309,21 @@
                     app:singleSelection="true">
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_date_off"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingLeft="16dp"
+                        android:paddingTop="8dp"
+                        android:paddingRight="16dp"
+                        android:paddingBottom="8dp"
+                        android:text="@string/off"
+                        app:shapeAppearance="?attr/shapeAppearanceCornerExtraSmall" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_date_relative"
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -322,6 +337,7 @@
                         app:shapeAppearance="?attr/shapeAppearanceCornerExtraSmall" />
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_date_absolute"
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

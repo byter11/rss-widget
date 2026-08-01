@@ -13,6 +13,7 @@
     <string name="trim_description_length">Trim description: %1$d characters</string>
     <string name="widget_transparency">Widget background opacity: %1$d</string>
     <string name="max_items_to_display">Max items to display: %1$d</string>
+    <string name="off">Off</string>
     <string name="relative">Relative</string>
     <string name="absolute">Absolute</string>
     <string name="date_format">Date format</string>

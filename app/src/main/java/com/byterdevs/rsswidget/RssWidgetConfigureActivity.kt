@@ -39,6 +39,7 @@ class RssWidgetConfigureActivity : Activity() {
     private val labelMaxItems: MaterialTextView get() = findViewById(R.id.label_max_items)
 
     private val switchDimRead: MaterialSwitch get() = findViewById(R.id.dim_read)
+    private val switchCompactMode: MaterialSwitch get() = findViewById(R.id.switch_compact_mode)
     private val switchShowHeaderBar: MaterialSwitch get() = findViewById(R.id.switch_show_header_bar)
     private val switchDescription: MaterialSwitch get() = findViewById(R.id.switch_description)
     private val switchImages: MaterialSwitch get() = findViewById(R.id.switch_images)
@@ -205,6 +206,7 @@ class RssWidgetConfigureActivity : Activity() {
                 readerType = ReaderType.entries[openLinkSpinner.selectedItemPosition],
                 showHeaderBar = switchShowHeaderBar.isChecked,
                 themeMode = themeMode,
+                compactMode = switchCompactMode.isChecked,
             )
 
             applicationContext.setWidgetPrefs(appWidgetId, prefs)
@@ -288,6 +290,7 @@ class RssWidgetConfigureActivity : Activity() {
             ThemeMode.SYSTEM -> R.id.btn_theme_system
         }
         themeToggleGroup.check(themeBtnId)
+        switchCompactMode.isChecked = prefs.compactMode
     }
 }
 
@@ -312,6 +315,7 @@ data class WidgetPrefs(
     val readerType: ReaderType,
     val showHeaderBar: Boolean = true,
     val themeMode: ThemeMode,
+    val compactMode: Boolean = false,
 )
 
 fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
@@ -333,6 +337,7 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         readerType = ReaderType.entries[prefs.getInt(widgetPrefKey(appWidgetId, "reader_type"), 0)],
         showHeaderBar = prefs.getBoolean(widgetPrefKey(appWidgetId, "show_header_bar"), true),
         themeMode = ThemeMode.entries[prefs.getInt(widgetPrefKey(appWidgetId, "theme_mode"), 0)],
+        compactMode = prefs.getBoolean(widgetPrefKey(appWidgetId, "compact_mode"), false),
     )
 }
 
@@ -353,6 +358,7 @@ fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
         putInt(widgetPrefKey(appWidgetId, "reader_type"), prefs.readerType.ordinal)
         putBoolean(widgetPrefKey(appWidgetId, "show_header_bar"), prefs.showHeaderBar)
         putInt(widgetPrefKey(appWidgetId, "theme_mode"), prefs.themeMode.ordinal)
+        putBoolean(widgetPrefKey(appWidgetId, "compact_mode"), prefs.compactMode)
     }
 }
 

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_rss_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="2dp"
+    android:orientation="vertical"
+    android:padding="2dp"
+    android:theme="@style/Theme.Material3.DynamicColors.DayNight">
+
+    <TextView
+        android:id="@+id/item_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:maxLines="1"
+        android:padding="1dp"
+        android:textColor="?android:attr/colorForeground"
+        android:textSize="11sp" />
+
+    <TextView
+        android:id="@+id/item_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:paddingLeft="2dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="9sp" />
+
+    <ImageView
+        android:id="@+id/item_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="centerCrop"
+        android:adjustViewBounds="true"
+        android:maxHeight="60dp"
+        android:background="@drawable/material_card_compact"
+        android:paddingVertical="2dp"
+        android:clipToOutline="true"
+        android:visibility="gone"
+    />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingLeft="2dp"
+        android:paddingRight="2dp">
+
+        <TextView
+            android:id="@+id/item_source"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="10sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:paddingEnd="4dp"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/item_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?android:attr/colorSecondary"
+            android:textSize="9sp" />
+    </LinearLayout>
+</LinearLayout>

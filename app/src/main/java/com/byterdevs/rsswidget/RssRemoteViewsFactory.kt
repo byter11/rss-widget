@@ -112,11 +112,12 @@ class RssRemoteViewsFactory(
         return items.size
     }
 
-    override fun getViewTypeCount(): Int = 1
+    override fun getViewTypeCount(): Int = 2
 
     override fun getViewAt(position: Int): RemoteViews {
         val item = items[position]
-        val views = RemoteViews(context.packageName, R.layout.widget_rss_item)
+        val layoutRes = if (prefs.compactMode) R.layout.widget_rss_item_compact else R.layout.widget_rss_item
+        val views = RemoteViews(context.packageName, layoutRes)
         views.setTextViewText(R.id.item_title, item.title)
         if((prefs.showDescription || error) && item.description.isNotEmpty()) {
             views.setViewVisibility(R.id.item_description, android.view.View.VISIBLE)

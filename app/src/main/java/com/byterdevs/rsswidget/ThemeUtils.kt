@@ -68,14 +68,15 @@ object ThemeUtils {
         return views
     }
 
-    fun setBgTransparency(context: Context, views: RemoteViews, viewId: Int, transparency: Float, themeMode: ThemeMode): RemoteViews {
-        if (themeMode == ThemeMode.SYSTEM) return setBgTransparency(context, views, viewId, transparency)
+    fun setBgTransparency(context: Context, views: RemoteViews, viewId: Int, transparency: Float, themeMode: ThemeMode, compactMode: Boolean = false): RemoteViews {
+        if (!compactMode && themeMode == ThemeMode.SYSTEM) return setBgTransparency(context, views, viewId, transparency)
 
         val themedContext = getThemedContextForWidget(context, themeMode)
         val backgroundColor = themedContext.getColorResCompat(android.R.attr.colorBackground)
 
-        // We set the base drawable to a solid white shape (background_1_0 should be white)
-        views.setInt(viewId, "setBackgroundResource", R.drawable.background_1_0)
+        // Use compact background if compact mode is enabled
+        val baseDrawable = if (compactMode) R.drawable.background_compact else R.drawable.background_1_0
+        views.setInt(viewId, "setBackgroundResource", baseDrawable)
 
         // Calculate alpha based on transparency (0-100)
         val alpha = (transparency * 2.55f).toInt().coerceIn(0, 255)
@@ -83,7 +84,7 @@ object ThemeUtils {
         val colorWithAlpha = (backgroundColor and 0x00FFFFFF) or (alpha shl 24)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            views.setColorStateList(viewId, "setBackgroundTintList", android.content.res.ColorStateList.valueOf(colorWithAlpha))
+            views.setColorStateList(viewId, "setBackgroundTintList", ColorStateList.valueOf(colorWithAlpha))
         } else {
             views.setInt(viewId, "setBackgroundColor", colorWithAlpha)
         }

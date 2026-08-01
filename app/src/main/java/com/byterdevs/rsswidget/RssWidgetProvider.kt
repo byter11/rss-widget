@@ -51,12 +51,14 @@ class RssWidgetProvider : AppWidgetProvider() {
             context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int
         ) {
             val prefs = context.getWidgetPrefs(appWidgetId)
+            val layoutRes = if (prefs.compactMode) R.layout.widget_rss_compact else R.layout.widget_rss
             val views = setBgTransparency(
                 context,
-                RemoteViews(context.packageName, R.layout.widget_rss),
+                RemoteViews(context.packageName, layoutRes),
                 R.id.widget_rss,
                 prefs.transparency,
-                prefs.themeMode
+                prefs.themeMode,
+                prefs.compactMode
             )
 
             val showHeader = prefs.showHeaderBar

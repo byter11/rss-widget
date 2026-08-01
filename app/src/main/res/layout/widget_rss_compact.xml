@@ -4,7 +4,7 @@
     android:id="@+id/widget_rss"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_1_0"
+    android:background="@drawable/background_compact"
     android:theme="@style/Theme.Material3.DynamicColors.DayNight">
 
     <LinearLayout
@@ -12,15 +12,15 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Control Bar -->
+        <!-- Compact Control Bar -->
         <RelativeLayout
             android:id="@+id/control_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp">
+            android:paddingStart="12dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="1dp"
+            android:paddingBottom="1dp">
 
             <TextView
                 android:id="@+id/widget_title"
@@ -34,7 +34,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:textColor="?android:attr/colorForeground"
                 android:text="@string/app_label"
-                android:textSize="16sp" />
+                android:textSize="12sp" />
 
             <LinearLayout
                 android:id="@+id/button_container"
@@ -46,23 +46,23 @@
 
                 <ImageButton
                     android:id="@+id/btn_settings"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:background="@android:color/transparent"
                     android:contentDescription="@string/header"
-                    android:padding="6dp"
+                    android:padding="2dp"
                     android:scaleType="centerInside"
                     android:src="@drawable/ic_settings"
                     android:alpha="0.7" />
 
                 <ImageButton
                     android:id="@+id/btn_refresh"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="2dp"
                     android:background="@android:color/transparent"
                     android:contentDescription="@string/refresh"
-                    android:padding="6dp"
+                    android:padding="2dp"
                     android:scaleType="centerInside"
                     android:src="@drawable/ic_refresh"
                     android:alpha="0.7" />
@@ -72,12 +72,12 @@
         <ImageView
             android:id="@+id/header_divider"
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
+            android:layout_height=".5dp"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
             android:background="@android:color/darker_gray"
             android:contentDescription="@null"
-            android:alpha="0.15" />
+            android:alpha="0.1" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -89,7 +89,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:text="@string/loading"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:fontFamily="sans-serif" />
 
             <ListView
@@ -98,7 +98,7 @@
                 android:layout_height="match_parent"
                 android:divider="@android:color/transparent"
                 android:dividerHeight="0dp"
-                android:paddingTop="4dp"
+                android:paddingTop="2dp"
                 android:clipToPadding="false" />
         </FrameLayout>
     </LinearLayout>

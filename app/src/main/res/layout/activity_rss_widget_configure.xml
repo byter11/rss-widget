@@ -231,6 +231,14 @@
                 android:text="@string/show_article_source"
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
 
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_colored_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="12dp"
+                android:text="@string/show_colored_bar"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

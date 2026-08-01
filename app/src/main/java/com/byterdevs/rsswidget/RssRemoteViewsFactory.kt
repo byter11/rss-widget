@@ -143,6 +143,20 @@ class RssRemoteViewsFactory(
             views.setViewVisibility(R.id.item_source, android.view.View.GONE)
         }
 
+        if (prefs.showColorBar) {
+            views.setViewVisibility(R.id.item_color_bar, android.view.View.VISIBLE)
+            val colors = intArrayOf(
+                0xFFF44336.toInt(), 0xFFE91E63.toInt(), 0xFF9C27B0.toInt(), 0xFF673AB7.toInt(),
+                0xFF3F51B5.toInt(), 0xFF2196F3.toInt(), 0xFF03A9F4.toInt(), 0xFF00BCD4.toInt(),
+                0xFF009688.toInt(), 0xFF4CAF50.toInt(), 0xFF8BC34A.toInt(), 0xFFCDDC39.toInt(),
+                0xFFFFEB3B.toInt(), 0xFFFFC107.toInt(), 0xFFFF9800.toInt(), 0xFFFF5722.toInt()
+            )
+            val colorIndex = Math.abs(item.link.hashCode()) % colors.size
+            views.setInt(R.id.item_color_bar, "setBackgroundColor", colors[colorIndex])
+        } else {
+            views.setViewVisibility(R.id.item_color_bar, android.view.View.GONE)
+        }
+
         if(prefs.dimReadItems) {
             markItemRead(views, item)
         }

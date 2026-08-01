@@ -39,6 +39,7 @@ class RssWidgetConfigureActivity : Activity() {
     private val labelMaxItems: MaterialTextView get() = findViewById(R.id.label_max_items)
 
     private val switchDimRead: MaterialSwitch get() = findViewById(R.id.dim_read)
+    private val switchColoredBar: MaterialSwitch get() = findViewById(R.id.switch_colored_bar)
     private val switchCompactMode: MaterialSwitch get() = findViewById(R.id.switch_compact_mode)
     private val switchShowHeaderBar: MaterialSwitch get() = findViewById(R.id.switch_show_header_bar)
     private val switchDescription: MaterialSwitch get() = findViewById(R.id.switch_description)
@@ -208,6 +209,7 @@ class RssWidgetConfigureActivity : Activity() {
                 showHeaderBar = switchShowHeaderBar.isChecked,
                 themeMode = themeMode,
                 compactMode = switchCompactMode.isChecked,
+                showColorBar = switchColoredBar.isChecked,
                 lastUpdated = oldPrefs.lastUpdated
             )
 
@@ -293,6 +295,7 @@ class RssWidgetConfigureActivity : Activity() {
         }
         themeToggleGroup.check(themeBtnId)
         switchCompactMode.isChecked = prefs.compactMode
+        switchColoredBar.isChecked = prefs.showColorBar
     }
 }
 
@@ -319,6 +322,7 @@ data class WidgetPrefs(
     val themeMode: ThemeMode,
     val compactMode: Boolean = false,
     val lastUpdated: Long = 0L,
+    val showColorBar: Boolean = false,
 )
 
 fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
@@ -342,6 +346,7 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         themeMode = ThemeMode.entries[prefs.getInt(widgetPrefKey(appWidgetId, "theme_mode"), 0)],
         compactMode = prefs.getBoolean(widgetPrefKey(appWidgetId, "compact_mode"), false),
         lastUpdated = prefs.getLong(widgetPrefKey(appWidgetId, "last_updated"), 0L),
+        showColorBar = prefs.getBoolean(widgetPrefKey(appWidgetId, "show_color_bar"), false),
     )
 }
 
@@ -364,6 +369,7 @@ fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
         putInt(widgetPrefKey(appWidgetId, "theme_mode"), prefs.themeMode.ordinal)
         putBoolean(widgetPrefKey(appWidgetId, "compact_mode"), prefs.compactMode)
         putLong(widgetPrefKey(appWidgetId, "last_updated"), prefs.lastUpdated)
+        putBoolean(widgetPrefKey(appWidgetId, "show_color_bar"), prefs.showColorBar)
     }
 }
 

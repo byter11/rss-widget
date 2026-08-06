@@ -1,0 +1,2 @@
+- Added a feed color picker to assign custom colors to different RSS sources.
+- Improved widget reliability when displaying many articles with images.

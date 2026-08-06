@@ -13,5 +13,6 @@ data class RssItemEntity(
     val link: String,
     val date: Long?, // Store as timestamp
     val source: String,
-    val image: String?
+    val image: String?,
+    val feedUrl: String
 )

@@ -92,7 +92,8 @@ class RssWidgetUpdateWorker(
                     link = link,
                     date = entry.publishedDate?.time,
                     source = source,
-                    image = localImageUri
+                    image = localImageUri,
+                    feedUrl = rssUrl
                 )
             }
         } catch (e: Exception) {

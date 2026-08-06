@@ -21,6 +21,15 @@
         android:fontFamily="sans-serif-medium"
         android:textAppearance="?attr/textAppearanceBodyMedium" />
 
+    <View
+        android:id="@+id/view_color_indicator"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginStart="12dp"
+        android:elevation="2dp"
+        android:clickable="true"
+        android:focusable="true" />
+
     <ImageButton
         android:id="@+id/btn_delete"
         android:layout_width="40dp"

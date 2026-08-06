@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [RssItemEntity::class], version = 2)
+@Database(entities = [RssItemEntity::class], version = 3)
 abstract class RssDatabase : RoomDatabase() {
     abstract fun rssItemDao(): RssItemDao
 

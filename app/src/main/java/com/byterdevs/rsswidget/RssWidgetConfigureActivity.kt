@@ -7,9 +7,12 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.AbsListView
 import android.widget.ArrayAdapter
+import android.widget.BaseAdapter
+import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.Spinner
@@ -17,6 +20,7 @@ import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.slider.Slider
 import com.google.android.material.textfield.TextInputEditText
@@ -24,6 +28,9 @@ import com.google.android.material.textview.MaterialTextView
 import androidx.core.content.edit
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.materialswitch.MaterialSwitch
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 
 const val PREFS_NAME = "com.byterdevs.rsswidget.RssWidgetProvider"
 const val PREF_PREFIX_KEY = "rss_url_"
@@ -40,7 +47,6 @@ class RssWidgetConfigureActivity : Activity() {
     private val labelMaxItems: MaterialTextView get() = findViewById(R.id.label_max_items)
 
     private val switchDimRead: MaterialSwitch get() = findViewById(R.id.dim_read)
-    private val switchColoredBar: MaterialSwitch get() = findViewById(R.id.switch_colored_bar)
     private val switchCompactMode: MaterialSwitch get() = findViewById(R.id.switch_compact_mode)
     private val switchShowHeaderBar: MaterialSwitch get() = findViewById(R.id.switch_show_header_bar)
     private val switchDescription: MaterialSwitch get() = findViewById(R.id.switch_description)
@@ -69,6 +75,7 @@ class RssWidgetConfigureActivity : Activity() {
     private val intervalValues = listOf(0, 15, 30, 60, 180, 360, 720) // minutes, 0 = manual
 
     private val urls = mutableSetOf<String>()
+    private val feedColors = mutableMapOf<String, Int?>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,10 +98,8 @@ class RssWidgetConfigureActivity : Activity() {
             return
         }
 
-        val inflater = LayoutInflater.from(this)
-
         urlSamples.forEach { (label, url) ->
-            val btn = inflater.inflate(
+            val btn = layoutInflater.inflate(
                 R.layout.item_sample_rss_button, sampleButtonsContainer, false
             ) as MaterialButton
             btn.text = label
@@ -210,7 +215,7 @@ class RssWidgetConfigureActivity : Activity() {
                 showHeaderBar = switchShowHeaderBar.isChecked,
                 themeMode = themeMode,
                 compactMode = switchCompactMode.isChecked,
-                showColorBar = switchColoredBar.isChecked,
+                feedColors = feedColors.toMap(),
                 lastUpdated = oldPrefs.lastUpdated
             )
 
@@ -237,25 +242,184 @@ class RssWidgetConfigureActivity : Activity() {
 
     private fun refreshSourcesList() {
         sourcesContainer.removeAllViews()
-        val inflater = LayoutInflater.from(this@RssWidgetConfigureActivity)
         urls.forEach { source ->
-            val view = inflater.inflate(R.layout.item_rss_source, sourcesContainer, false)
+            val view = layoutInflater.inflate(R.layout.item_rss_source, sourcesContainer, false)
             val urlText = view.findViewById<TextView>(R.id.text_url)
             val btnDelete = view.findViewById<ImageButton>(R.id.btn_delete)
+            val colorIndicator = view.findViewById<View>(R.id.view_color_indicator)
 
             urlText.text = source
             btnDelete.setOnClickListener {
                 urls.remove(source)
+                feedColors.remove(source)
                 refreshSourcesList()
             }
+
+            val currentColor = feedColors[source]
+            updateColorIndicator(colorIndicator, currentColor)
+
+            colorIndicator.setOnClickListener {
+                showColorPickerDialog(source) { selectedColor ->
+                    feedColors[source] = selectedColor
+                    updateColorIndicator(colorIndicator, selectedColor)
+                }
+            }
+
             sourcesContainer.addView(view)
         }
+    }
+
+    private fun updateColorIndicator(view: View, color: Int?) {
+        if (color != null) {
+            val drawable = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(color)
+                setStroke((1 * resources.displayMetrics.density).toInt(), Color.WHITE)
+            }
+            view.background = drawable
+        } else {
+            view.setBackgroundResource(R.drawable.ic_none)
+        }
+    }
+
+    private val MATERIAL_COLORS = intArrayOf(
+        0xFFF44336.toInt(), 0xFFE91E63.toInt(), 0xFF9C27B0.toInt(), 0xFF673AB7.toInt(),
+        0xFF3F51B5.toInt(), 0xFF2196F3.toInt(), 0xFF03A9F4.toInt(), 0xFF00BCD4.toInt(),
+        0xFF009688.toInt(), 0xFF4CAF50.toInt(), 0xFF8BC34A.toInt(), 0xFFCDDC39.toInt(),
+        0xFFFFEB3B.toInt(), 0xFFFFC107.toInt(), 0xFFFF9800.toInt(), 0xFFFF5722.toInt(),
+        0xFF795548.toInt(), 0xFF9E9E9E.toInt(), 0xFF607D8B.toInt(), 0xFF000000.toInt()
+    )
+
+    private fun showColorPickerDialog(url: String, onColorSelected: (Int?) -> Unit) {
+        val bottomSheet = BottomSheetDialog(this)
+        val currentColor = feedColors[url]
+        
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            val padding = (24 * resources.displayMetrics.density).toInt()
+            setPadding(padding, padding, padding, padding)
+        }
+
+        // Header
+        container.addView(TextView(this).apply {
+            text = url.removePrefix("https://").removePrefix("http://").take(40)
+            androidx.core.widget.TextViewCompat.setTextAppearance(this, com.google.android.material.R.style.TextAppearance_Material3_TitleMedium)
+            setPadding(0, 0, 0, (16 * resources.displayMetrics.density).toInt())
+        })
+
+        // "None" option
+        val noneLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            isClickable = true
+            isFocusable = true
+            val outValue = android.util.TypedValue()
+            theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
+            setBackgroundResource(outValue.resourceId)
+            setPadding((8 * resources.displayMetrics.density).toInt(), (12 * resources.displayMetrics.density).toInt(), (8 * resources.displayMetrics.density).toInt(), (12 * resources.displayMetrics.density).toInt())
+            setOnClickListener {
+                onColorSelected(null)
+                bottomSheet.dismiss()
+            }
+        }
+
+        noneLayout.addView(View(this).apply {
+            val size = (28 * resources.displayMetrics.density).toInt()
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            if (currentColor == null) {
+                val ring = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(Color.TRANSPARENT)
+                    setStroke((2 * resources.displayMetrics.density).toInt(), Color.WHITE)
+                }
+                val icon = androidx.core.content.ContextCompat.getDrawable(context, R.drawable.ic_none)!!
+                val ld = LayerDrawable(arrayOf(ring, icon))
+                val inset = (4 * resources.displayMetrics.density).toInt()
+                ld.setLayerInset(1, inset, inset, inset, inset)
+                background = ld
+            } else {
+                setBackgroundResource(R.drawable.ic_none)
+            }
+        })
+
+        noneLayout.addView(TextView(this).apply {
+            text = getString(R.string.none)
+            androidx.core.widget.TextViewCompat.setTextAppearance(this, com.google.android.material.R.style.TextAppearance_Material3_BodyLarge)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                marginStart = (16 * resources.displayMetrics.density).toInt()
+            }
+            if (currentColor == null) {
+                setTypeface(null, android.graphics.Typeface.BOLD)
+            }
+        })
+
+        container.addView(noneLayout)
+
+        // "Colors" heading
+        container.addView(TextView(this).apply {
+            text = "Colors"
+            androidx.core.widget.TextViewCompat.setTextAppearance(this, com.google.android.material.R.style.TextAppearance_Material3_LabelLarge)
+            setPadding(0, (24 * resources.displayMetrics.density).toInt(), 0, (12 * resources.displayMetrics.density).toInt())
+        })
+
+        // Grid
+        val gridView = GridView(this).apply {
+            numColumns = 5
+            horizontalSpacing = (12 * resources.displayMetrics.density).toInt()
+            verticalSpacing = (12 * resources.displayMetrics.density).toInt()
+            stretchMode = GridView.STRETCH_COLUMN_WIDTH
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+
+        gridView.adapter = object : BaseAdapter() {
+            override fun getCount(): Int = MATERIAL_COLORS.size
+            override fun getItem(position: Int): Any = MATERIAL_COLORS[position]
+            override fun getItemId(position: Int): Long = position.toLong()
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+                val color = MATERIAL_COLORS[position]
+                val view = convertView ?: View(this@RssWidgetConfigureActivity).apply {
+                    val size = (44 * resources.displayMetrics.density).toInt()
+                    layoutParams = AbsListView.LayoutParams(size, size)
+                }
+                
+                val swatch = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(color)
+                }
+
+                if (color == currentColor) {
+                    val ring = GradientDrawable().apply {
+                        shape = GradientDrawable.OVAL
+                        setColor(Color.TRANSPARENT)
+                        setStroke((2 * resources.displayMetrics.density).toInt(), Color.WHITE)
+                    }
+                    val ld = LayerDrawable(arrayOf(ring, swatch))
+                    val inset = (6 * resources.displayMetrics.density).toInt()
+                    ld.setLayerInset(1, inset, inset, inset, inset)
+                    view.background = ld
+                } else {
+                    view.background = swatch
+                }
+
+                view.setOnClickListener {
+                    onColorSelected(color)
+                    bottomSheet.dismiss()
+                }
+                return view
+            }
+        }
+        container.addView(gridView)
+
+        bottomSheet.setContentView(container)
+        bottomSheet.show()
     }
 
     private fun restoreConfig() {
         val prefs = applicationContext.getWidgetPrefs(appWidgetId)
         urls.clear()
         urls.addAll(prefs.urls)
+        feedColors.clear()
+        feedColors.putAll(prefs.feedColors)
         refreshSourcesList()
 
         if (!prefs.title.isNullOrEmpty()) {
@@ -298,7 +462,6 @@ class RssWidgetConfigureActivity : Activity() {
         }
         themeToggleGroup.check(themeBtnId)
         switchCompactMode.isChecked = prefs.compactMode
-        switchColoredBar.isChecked = prefs.showColorBar
     }
 }
 
@@ -325,12 +488,16 @@ data class WidgetPrefs(
     val themeMode: ThemeMode,
     val compactMode: Boolean = false,
     val lastUpdated: Long = 0L,
-    val showColorBar: Boolean = false,
+    val feedColors: Map<String, Int?> = emptyMap(),
 )
 
 fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
     val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     val urls = prefs.getStringSet(widgetPrefKey(appWidgetId, "url"), null).orEmpty()
+    val feedColors = urls.associateWith { url ->
+        val color = prefs.getInt(widgetPrefKey(appWidgetId, "color_$url"), Int.MIN_VALUE)
+        if (color == Int.MIN_VALUE) null else color
+    }
     return WidgetPrefs(
         urls = urls,
         title = prefs.getString(widgetPrefKey(appWidgetId, "title"), "HomeFeed").orEmpty(),
@@ -349,7 +516,7 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         themeMode = ThemeMode.entries[prefs.getInt(widgetPrefKey(appWidgetId, "theme_mode"), 0)],
         compactMode = prefs.getBoolean(widgetPrefKey(appWidgetId, "compact_mode"), false),
         lastUpdated = prefs.getLong(widgetPrefKey(appWidgetId, "last_updated"), 0L),
-        showColorBar = prefs.getBoolean(widgetPrefKey(appWidgetId, "show_color_bar"), false),
+        feedColors = feedColors
     )
 }
 
@@ -373,7 +540,15 @@ fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
         putInt(widgetPrefKey(appWidgetId, "theme_mode"), prefs.themeMode.ordinal)
         putBoolean(widgetPrefKey(appWidgetId, "compact_mode"), prefs.compactMode)
         putLong(widgetPrefKey(appWidgetId, "last_updated"), prefs.lastUpdated)
-        putBoolean(widgetPrefKey(appWidgetId, "show_color_bar"), prefs.showColorBar)
+
+        // Clear old colors? Or just overwrite.
+        prefs.feedColors.forEach { (url, color) ->
+            if (color != null) {
+                putInt(widgetPrefKey(appWidgetId, "color_$url"), color)
+            } else {
+                remove(widgetPrefKey(appWidgetId, "color_$url"))
+            }
+        }
     }
 }
 

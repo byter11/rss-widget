@@ -43,6 +43,10 @@
             android:exported="true"
         />
         <provider
+            android:name=".widget.WidgetThumbnailProvider"
+            android:authorities="${applicationId}.widgetthumbnails"
+            android:exported="true" />
+        <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.byterdevs.rsswidget.fileprovider"
             android:exported="false"

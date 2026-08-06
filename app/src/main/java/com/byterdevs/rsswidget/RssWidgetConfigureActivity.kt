@@ -552,6 +552,34 @@ fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
     }
 }
 
+fun Context.deleteWidgetPrefs(appWidgetId: Int) {
+    Log.d("RssWidgetPrefs", "deleteWidgetPrefs: id=$appWidgetId")
+    val sp = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    val prefs = getWidgetPrefs(appWidgetId)
+    sp.edit(commit = true) {
+        remove(widgetPrefKey(appWidgetId, "url"))
+        remove(widgetPrefKey(appWidgetId, "title"))
+        remove(widgetPrefKey(appWidgetId, "max"))
+        remove(widgetPrefKey(appWidgetId, "description_length"))
+        remove(widgetPrefKey(appWidgetId, "description"))
+        remove(widgetPrefKey(appWidgetId, "images"))
+        remove(widgetPrefKey(appWidgetId, "transparency"))
+        remove(widgetPrefKey(appWidgetId, "source"))
+        remove(widgetPrefKey(appWidgetId, "date_format"))
+        remove(widgetPrefKey(appWidgetId, "update_interval"))
+        remove(widgetPrefKey(appWidgetId, "dim_read"))
+        remove(widgetPrefKey(appWidgetId, "reader_type"))
+        remove(widgetPrefKey(appWidgetId, "show_header_bar"))
+        remove(widgetPrefKey(appWidgetId, "theme_mode"))
+        remove(widgetPrefKey(appWidgetId, "compact_mode"))
+        remove(widgetPrefKey(appWidgetId, "last_updated"))
+
+        prefs.urls.forEach { url ->
+            remove(widgetPrefKey(appWidgetId, "color_$url"))
+        }
+    }
+}
+
 private fun widgetPrefKey(appWidgetId: Int, key: String): String {
     return PREF_PREFIX_KEY + appWidgetId + "_" + key
 }

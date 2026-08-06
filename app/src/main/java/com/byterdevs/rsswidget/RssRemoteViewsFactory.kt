@@ -12,11 +12,13 @@ import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import android.content.pm.PackageManager
 import com.byterdevs.rsswidget.ThemeUtils.getThemedContextForWidget
 import com.byterdevs.rsswidget.ThemeUtils.setBgTransparency
 import kotlinx.parcelize.Parcelize
-import android.graphics.BitmapFactory
+import com.byterdevs.rsswidget.widget.WidgetThumbnailProvider
 import com.byterdevs.rsswidget.room.RssDatabase
+import java.io.File
 import java.util.Date
 import kotlinx.coroutines.*
 
@@ -35,11 +37,9 @@ class RssRemoteViewsFactory(
     private var items = mutableListOf<RssItem>()
     private lateinit var prefs: WidgetPrefs
     private var error: Boolean = false
+    private var isRefreshing = false
+    private val refreshLock = Any()
 
-    companion object {
-        private val refreshLock = Any()
-        @Volatile private var isRefreshing = false
-    }
     override fun onCreate() {
         prefs = context.getWidgetPrefs(appWidgetId)
     }
@@ -61,12 +61,15 @@ class RssRemoteViewsFactory(
                 )
             }
             withContext(Dispatchers.Main) {
+                Log.d("RssRemoteViewsFactory", "Loaded ${loadedItems.size} items")
+                items.clear()
                 items.addAll(loadedItems)
             }
         } catch (e: Exception) {
             Log.e("RssRemoteViewsFactory", "Failed to load items from DB", e)
             withContext(Dispatchers.Main) {
                 error = true
+                items.clear()
                 items.add(RssItem("Failed to load RSS feed", "Verify the URL and add the widget again.", ""))
             }
         } finally {
@@ -86,63 +89,77 @@ class RssRemoteViewsFactory(
         prefs = context.getWidgetPrefs(appWidgetId)
         Log.d("RssRemoteViewsFactory", "onDataSetChanged: prefs reloaded, compact=${prefs.compactMode}")
         error = false
-        items.clear()
 
         loadItems()
     }
 
     override fun getCount(): Int {
+        Log.d("RssRemoteViewsFactory", "getCount: ${items.size}")
         return items.size
     }
 
     override fun getViewTypeCount(): Int = 2
 
     override fun getViewAt(position: Int): RemoteViews {
+        if (position >= items.size) return getLoadingView()
         Log.d("RssRemoteViewsFactory", "getViewAt: pos=$position, compact=${prefs.compactMode}")
         val item = items[position]
         val layoutRes = if (prefs.compactMode) R.layout.widget_rss_item_compact else R.layout.widget_rss_item
         val views = RemoteViews(context.packageName, layoutRes)
+        
+        val themedContext = getThemedContextForWidget(context, prefs.themeMode)
+        val colorTitle = themedContext.getColorResCompat(android.R.attr.colorForeground)
+        val colorDesc = themedContext.getColorResCompat(android.R.attr.textColorPrimary)
+        val colorSecondary = themedContext.getColorResCompat(android.R.attr.colorSecondary)
+        val colorTextSecondary = themedContext.getColorResCompat(android.R.attr.textColorSecondary)
+
         views.setTextViewText(R.id.item_title, item.title)
+        views.setTextColor(R.id.item_title, colorTitle)
+
         if((prefs.showDescription || error) && item.description.isNotEmpty()) {
             views.setViewVisibility(R.id.item_description, android.view.View.VISIBLE)
             views.setTextViewText(R.id.item_description, item.description)
+            views.setTextColor(R.id.item_description, colorDesc)
         } else {
             views.setViewVisibility(R.id.item_description, android.view.View.GONE)
         }
+
         // Show image if available
-        if (item.image != null && item.image.isNotEmpty()) {
+        if (!item.image.isNullOrEmpty()) {
             views.setViewVisibility(R.id.item_image, android.view.View.VISIBLE)
             try {
-                val bitmap = if (item.image.startsWith("content://")) {
-                    context.contentResolver.openInputStream(item.image.toUri())?.use {
-                        BitmapFactory.decodeStream(it)
+                if (item.image.startsWith("content://")) {
+                    views.setImageViewUri(R.id.item_image, item.image.toUri())
+                } else {
+                    val file = File(item.image)
+                    if (file.exists()) {
+                        val uri = WidgetThumbnailProvider.uriFor(context, file.name)
+                        views.setImageViewUri(R.id.item_image, uri)
+                    } else {
+                        views.setViewVisibility(R.id.item_image, android.view.View.GONE)
                     }
-                } else {
-                    BitmapFactory.decodeFile(item.image)
-                }
-
-                if (bitmap != null) {
-                    views.setImageViewBitmap(R.id.item_image, bitmap)
-                } else {
-                    views.setViewVisibility(R.id.item_image, android.view.View.GONE)
                 }
             } catch (e: Exception) {
-                Log.e("RssRemoteViewsFactory", "Failed to load image bitmap", e)
+                Log.e("RssRemoteViewsFactory", "Failed to set image URI for ${item.image}", e)
                 views.setViewVisibility(R.id.item_image, android.view.View.GONE)
             }
         } else {
             views.setViewVisibility(R.id.item_image, android.view.View.GONE)
         }
+
         val formattedDate = DateUtils.formatDate(item.date, prefs.dateFormat)
         if (formattedDate.isNotEmpty()) {
             views.setViewVisibility(R.id.item_date, android.view.View.VISIBLE)
             views.setTextViewText(R.id.item_date, formattedDate)
+            views.setTextColor(R.id.item_date, colorSecondary)
         } else {
             views.setViewVisibility(R.id.item_date, android.view.View.GONE)
         }
+        
         if (prefs.showSource && item.source.isNotEmpty()) {
             views.setViewVisibility(R.id.item_source, android.view.View.VISIBLE)
             views.setTextViewText(R.id.item_source, item.source)
+            views.setTextColor(R.id.item_source, colorTextSecondary)
         } else {
             views.setViewVisibility(R.id.item_source, android.view.View.GONE)
         }
@@ -156,7 +173,14 @@ class RssRemoteViewsFactory(
         }
 
         if(prefs.dimReadItems) {
-            markItemRead(views, item)
+            val isRead = ReadItemsStore.isRead(context, appWidgetId, item.link)
+            if (isRead) {
+                val dimColor = context.getColor(com.google.android.material.R.color.material_dynamic_neutral50)
+                views.setTextColor(R.id.item_title, dimColor)
+                views.setTextColor(R.id.item_description, dimColor)
+                views.setTextColor(R.id.item_date, dimColor)
+                views.setTextColor(R.id.item_source, dimColor)
+            }
         }
 
         val fillInIntent = Intent()
@@ -168,40 +192,7 @@ class RssRemoteViewsFactory(
         views.setOnClickFillInIntent(R.id.item_date, fillInIntent)
         views.setOnClickFillInIntent(R.id.widget_rss_item, fillInIntent)
 
-        val themedContext = getThemedContextForWidget(context, prefs.themeMode)
-
-        val colorTitle = themedContext.getColorResCompat(android.R.attr.colorForeground)
-        val colorDesc = themedContext.getColorResCompat(android.R.attr.textColorPrimary)
-        val colorSecondary = themedContext.getColorResCompat(android.R.attr.colorSecondary)
-        val colorTextSecondary = themedContext.getColorResCompat(android.R.attr.textColorSecondary)
-
-        views.setTextColor(R.id.item_title, colorTitle)
-        views.setTextColor(R.id.item_description, colorDesc)
-        views.setTextColor(R.id.item_date, colorSecondary)
-        views.setTextColor(R.id.item_source, colorTextSecondary)
         return views
-    }
-
-    fun markItemRead(views: RemoteViews, item: RssItem) {
-        val configurationContext = getThemedContextForWidget(context, prefs.themeMode)
-        val colorSecondary = configurationContext.getColorResCompat(android.R.attr.colorSecondary)
-        val colorTextSecondary = configurationContext.getColorResCompat(android.R.attr.textColorSecondary)
-        val colorTitle = configurationContext.getColorResCompat(android.R.attr.colorForeground)
-        val colorDesc = configurationContext.getColorResCompat(android.R.attr.textColorPrimary)
-
-        // Dim read items
-        val isRead = ReadItemsStore.isRead(context, appWidgetId, item.link)
-        if (isRead) {
-            views.setTextColor(R.id.item_title, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
-            views.setTextColor(R.id.item_description, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
-            views.setTextColor(R.id.item_date, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
-            views.setTextColor(R.id.item_source, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
-        } else {
-            views.setTextColor(R.id.item_title, colorTitle)
-            views.setTextColor(R.id.item_description, colorDesc)
-            views.setTextColor(R.id.item_date, colorSecondary)
-            views.setTextColor(R.id.item_source, colorTextSecondary)
-        }
     }
 
     override fun getLoadingView(): RemoteViews {

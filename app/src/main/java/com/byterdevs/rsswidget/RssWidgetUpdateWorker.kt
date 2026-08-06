@@ -3,12 +3,15 @@ package com.byterdevs.rsswidget
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.util.Log
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.core.text.HtmlCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.byterdevs.rsswidget.room.RssDatabase
 import com.byterdevs.rsswidget.room.RssItemDao
 import com.byterdevs.rsswidget.room.RssItemEntity
+import com.byterdevs.rsswidget.widget.WidgetThumbnailProvider
 import com.rometools.modules.mediarss.MediaEntryModule
 import com.rometools.modules.mediarss.types.UrlReference
 import com.rometools.rome.feed.synd.SyndEntry
@@ -54,9 +57,7 @@ class RssWidgetUpdateWorker(
         return Result.success()
     }
 
-    private fun fetchRssItems(appWidgetId: Int, rssUrl: String): List<RssItemEntity> {
-        val prefs = applicationContext.getWidgetPrefs(appWidgetId)
-
+    private fun fetchRssItems(appWidgetId: Int, rssUrl: String, prefs: WidgetPrefs): List<RssItemEntity> {
         return try {
             val feed = fetchFeedWithRetry(rssUrl)
             val feedTitle = feed.title?.trim() ?: ""
@@ -81,9 +82,7 @@ class RssWidgetUpdateWorker(
                     if (host.startsWith("www.")) host.substring(4) else host
                 } catch (e: Exception) { feedTitle }
 
-                val localImageUri = if (prefs.showImages) getImageUrl(entry)?.let {
-                    getLocalImageUri(applicationContext, appWidgetId, it)
-                } else null
+                val imageUrl = getImageUrl(entry)
 
                 RssItemEntity(
                     appWidgetId = appWidgetId,
@@ -92,7 +91,7 @@ class RssWidgetUpdateWorker(
                     link = link,
                     date = entry.publishedDate?.time,
                     source = source,
-                    image = localImageUri,
+                    image = imageUrl, // Store remote URL temporarily
                     feedUrl = rssUrl
                 )
             }
@@ -159,27 +158,43 @@ class RssWidgetUpdateWorker(
         }
     }
 
-    private fun configureConnection(connection: HttpURLConnection) {
+    private fun configureConnection(connection: HttpURLConnection, followRedirects: Boolean = false) {
         connection.setRequestProperty(
             "User-Agent",
             "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36"
         )
-        connection.setRequestProperty("Accept", "application/rss+xml, application/xml, text/xml, */*")
-        connection.setRequestProperty("Connection", "close") // avoid stale keep-alive socket reuse
-        connection.instanceFollowRedirects = false // handled manually above
-        connection.connectTimeout = 10_000
-        connection.readTimeout = 15_000
+        connection.setRequestProperty("Accept", "image/*, application/rss+xml, application/xml, text/xml, */*")
+        connection.setRequestProperty("Connection", "close")
+        connection.instanceFollowRedirects = followRedirects
+        connection.connectTimeout = 15_000
+        connection.readTimeout = 20_000
     }
-    private fun clearStaleImages(context: Context, appWidgetId: Int) {
-        for (f in context.cacheDir.listFiles()!!) {
-            // Don't delete images for other widgets
-            if (!f.name.startsWith("$appWidgetId")) {
-                continue
-            }
 
-            // Delete stale images without the current prefix
-            if (!f.getName().startsWith("${appWidgetId}_${id.toString()}")) {
-                f.delete()
+    companion object {
+        fun clearAllImagesForWidget(context: Context, appWidgetId: Int) {
+            val files = WidgetThumbnailProvider.cacheDir(context).listFiles() ?: return
+            Log.d("RssWidgetUpdateWorker", "clearAllImagesForWidget: deleting all cached images for widget $appWidgetId")
+            for (f in files) {
+                if (f.name.startsWith("img_$appWidgetId") || f.name.startsWith("${appWidgetId}_")) {
+                    f.delete()
+                }
+            }
+        }
+    }
+
+    private fun clearStaleImages(context: Context, appWidgetId: Int) {
+        val files = WidgetThumbnailProvider.cacheDir(context).listFiles() ?: return
+        val now = System.currentTimeMillis()
+        val oneWeek = 7 * 24 * 60 * 60 * 1000L
+        
+        Log.d("RssWidgetUpdateWorker", "clearStaleImages: checking cache for widget $appWidgetId")
+        for (f in files) {
+            // Delete images for this widget that haven't been accessed in a week
+            if (f.name.startsWith("img_$appWidgetId") || f.name.startsWith("${appWidgetId}_")) {
+                if (now - f.lastModified() > oneWeek) {
+                    Log.d("RssWidgetUpdateWorker", "Deleting old image: ${f.name}")
+                    f.delete()
+                }
             }
         }
     }
@@ -190,25 +205,94 @@ class RssWidgetUpdateWorker(
         return cachedFile?.absolutePath
     }
 
-    // Helper function to download and cache image
+    // Helper function to download and cache image with retries and stable naming
     private fun downloadAndCacheImage(context: Context, appWidgetId: Int, url: String): java.io.File? {
-        return try {
-            val cacheDir = context.cacheDir
-            val fileName = "${appWidgetId}_${id.toString()}_${url.hashCode()}.jpg"
-            val file = java.io.File(cacheDir, fileName)
-            if (!file.exists()) {
-                val connection = URL(url).openConnection()
-                connection.connect()
-                val input = connection.getInputStream()
-                val output = file.outputStream()
-                input.copyTo(output)
-                input.close()
-                output.close()
-            }
-            file
-        } catch (e: Exception) {
-            null
+        Log.d("RssWidgetUpdateWorker", "downloadAndCacheImage: url=$url")
+        var lastError: Exception? = null
+        // Stable filename using URL hash, not worker ID, to avoid unnecessary re-downloads
+        val fileName = "img_${appWidgetId}_${url.hashCode()}.jpg"
+        val file = java.io.File(WidgetThumbnailProvider.cacheDir(context), fileName)
+
+        if (file.exists() && file.length() > 0) {
+            Log.d("RssWidgetUpdateWorker", "Image already cached: $fileName")
+            return file
         }
+
+        repeat(3) { attempt ->
+            try {
+                Log.d("RssWidgetUpdateWorker", "Downloading image (attempt ${attempt + 1}) to $fileName")
+                val connection = URL(url).openConnection() as HttpURLConnection
+                configureConnection(connection, followRedirects = true)
+                connection.connect()
+
+                val code = connection.responseCode
+                if (code !in 200..299) {
+                    val msg = "HTTP $code for $url"
+                    connection.disconnect()
+                    throw IOException(msg)
+                }
+
+                val tempFile = java.io.File(WidgetThumbnailProvider.cacheDir(context), "${fileName}.tmp")
+                connection.inputStream.use { input ->
+                    tempFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                connection.disconnect()
+
+                // Downsample and save to final location
+                downsampleAndSave(tempFile, file)
+                tempFile.delete()
+
+                Log.d("RssWidgetUpdateWorker", "Image downloaded and downsampled: ${file.length()} bytes")
+                return file
+            } catch (e: Exception) {
+                lastError = e
+                Log.w("RssWidgetUpdateWorker", "Failed attempt ${attempt + 1} for $url: ${e.message}")
+                if (attempt < 2) Thread.sleep(1000L * (attempt + 1))
+            }
+        }
+        Log.e("RssWidgetUpdateWorker", "Final failure downloading image $url: ${lastError?.message}")
+        return null
+    }
+
+    private fun downsampleAndSave(sourceFile: java.io.File, destFile: java.io.File) {
+        try {
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+            BitmapFactory.decodeFile(sourceFile.absolutePath, options)
+
+            // Target max dimension of 800px for widget images
+            options.inSampleSize = calculateInSampleSize(options, 800, 800)
+            options.inJustDecodeBounds = false
+
+            val bitmap = BitmapFactory.decodeFile(sourceFile.absolutePath, options)
+            if (bitmap != null) {
+                destFile.outputStream().use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+                }
+                bitmap.recycle()
+            } else {
+                sourceFile.renameTo(destFile)
+            }
+        } catch (e: Exception) {
+            Log.e("RssWidgetUpdateWorker", "Error downsampling image", e)
+            sourceFile.renameTo(destFile)
+        }
+    }
+
+    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        val (height: Int, width: Int) = options.outHeight to options.outWidth
+        var inSampleSize = 1
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
     }
 
     private fun getImageUrl(entry: SyndEntry): String? {
@@ -267,17 +351,34 @@ class RssWidgetUpdateWorker(
     fun updateRssFeed(appWidgetId: Int, dao: RssItemDao) = runBlocking {
         val prefs = applicationContext.getWidgetPrefs(appWidgetId)
 
-        val entities = mutableListOf<RssItemEntity>()
+        val allEntities = mutableListOf<RssItemEntity>()
         prefs.urls.forEach { url ->
-            entities.addAll(fetchRssItems(appWidgetId, url))
+            val items = fetchRssItems(appWidgetId, url, prefs)
+            allEntities.addAll(items)
+            Log.d("RssWidgetUpdateWorker", "Loaded ${items.size} articles from $url")
         }
 
-        entities.sortByDescending { it.date ?: 0L }
+        allEntities.sortByDescending { it.date ?: 0L }
 
-        if (entities.isNotEmpty()) {
+        // Apply maxItems limit before downloading images
+        val limitedEntities = allEntities.take(prefs.maxItems)
+
+        Log.d("RssWidgetUpdateWorker", "Limiting articles to ${limitedEntities.size}")
+
+        if (limitedEntities.isNotEmpty()) {
+            // Now download images only for the items we are keeping
+            val finalEntities = limitedEntities.map { entity ->
+                val localImageUri = if (prefs.showImages && entity.image != null) {
+                    Log.d("RssWidgetUpdateWorker", "Downloading image for: ${entity.title.take(20)}")
+                    getLocalImageUri(applicationContext, appWidgetId, entity.image)
+                } else null
+                
+                entity.copy(image = localImageUri)
+            }
+
             dao.clearItemsForWidget(appWidgetId)
             clearStaleImages(applicationContext, appWidgetId)
-            dao.insertAll(entities)
+            dao.insertAll(finalEntities)
             
             val now = System.currentTimeMillis()
             Log.d("RssWidgetUpdateWorker", "Updating lastUpdated to $now for widget $appWidgetId")
@@ -286,7 +387,7 @@ class RssWidgetUpdateWorker(
             val updatedPrefs = latestPrefs.copy(lastUpdated = now)
             applicationContext.setWidgetPrefs(appWidgetId, updatedPrefs)
 
-            Log.i("RssWidgetUpdateWorker", "Loaded ${entities.size} articles for widget $appWidgetId")
+            Log.i("RssWidgetUpdateWorker", "Loaded ${finalEntities.size} articles for widget $appWidgetId")
         } else {
             Log.w("RssWidgetUpdateWorker", "No entities fetched for widget $appWidgetId")
         }

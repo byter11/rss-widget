@@ -16,6 +16,8 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import java.util.Date
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 
 class RssWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(
@@ -24,6 +26,29 @@ class RssWidgetProvider : AppWidgetProvider() {
         Log.d("RssWidgetProvider", "onUpdate: ids=${appWidgetIds.joinToString()}")
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
+        }
+    }
+
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        super.onDeleted(context, appWidgetIds)
+        Log.d("RssWidgetProvider", "onDeleted: ids=${appWidgetIds.joinToString()}")
+        for (appWidgetId in appWidgetIds) {
+            // Cancel workers
+            WorkManager.getInstance(context).cancelUniqueWork("rss_widget_update_$appWidgetId")
+            
+            // Clear items from DB
+            val db = com.byterdevs.rsswidget.room.RssDatabase.getInstance(context)
+            val dao = db.rssItemDao()
+            @OptIn(DelicateCoroutinesApi::class)
+            GlobalScope.launch(Dispatchers.IO) {
+                dao.clearItemsForWidget(appWidgetId)
+            }
+
+            // Clear preferences
+            context.deleteWidgetPrefs(appWidgetId)
+
+            // Clear cached images
+            RssWidgetUpdateWorker.clearAllImagesForWidget(context, appWidgetId)
         }
     }
 

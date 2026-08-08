@@ -29,7 +29,13 @@ class WidgetThumbnailProvider : ContentProvider() {
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
         val fileName = uri.lastPathSegment ?: return null
-        val file = File(cacheDir(context!!), fileName)
+        val rootDir = cacheDir(context!!)
+        val file = File(rootDir, fileName).canonicalFile
+
+        if (!file.path.startsWith(rootDir.canonicalPath)) {
+            throw SecurityException("Path traversal attempt")
+        }
+
         if (!file.exists()) return null
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
@@ -39,7 +45,13 @@ class WidgetThumbnailProvider : ContentProvider() {
         selectionArgs: Array<out String>?, sortOrder: String?
     ): Cursor? {
         val fileName = uri.lastPathSegment ?: return null
-        val file = File(cacheDir(context!!), fileName)
+        val rootDir = cacheDir(context!!)
+        val file = File(rootDir, fileName).canonicalFile
+
+        if (!file.path.startsWith(rootDir.canonicalPath)) {
+            throw SecurityException("Path traversal attempt")
+        }
+
         val cursor = MatrixCursor(arrayOf(android.provider.OpenableColumns.DISPLAY_NAME, android.provider.OpenableColumns.SIZE))
         cursor.addRow(arrayOf(fileName, file.length()))
         return cursor

@@ -1,0 +1,2 @@
+- Option for font scaling.
+- Parsing HTML in titles.

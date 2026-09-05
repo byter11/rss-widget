@@ -41,4 +41,5 @@
     <string name="compact_mode">Compact mode</string>
     <string name="show_colored_bar">Show side accents</string>
     <string name="none">None</string>
+    <string name="font_scale">Font scale: %1$.1f</string>
 </resources>

@@ -16,7 +16,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-    }
+;    }
 }
 
 rootProject.name = "RSS Widget"

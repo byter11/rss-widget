@@ -115,11 +115,17 @@ class RssRemoteViewsFactory(
 
         views.setTextViewText(R.id.item_title, item.title)
         views.setTextColor(R.id.item_title, colorTitle)
+        
+        val titleSize = if (prefs.compactMode) 13f else 15f
+        views.setTextViewTextSize(R.id.item_title, TypedValue.COMPLEX_UNIT_SP, titleSize * prefs.fontScale)
 
         if((prefs.showDescription || error) && item.description.isNotEmpty()) {
             views.setViewVisibility(R.id.item_description, android.view.View.VISIBLE)
             views.setTextViewText(R.id.item_description, item.description)
             views.setTextColor(R.id.item_description, colorDesc)
+            
+            val descSize = if (prefs.compactMode) 11f else 12f
+            views.setTextViewTextSize(R.id.item_description, TypedValue.COMPLEX_UNIT_SP, descSize * prefs.fontScale)
         } else {
             views.setViewVisibility(R.id.item_description, android.view.View.GONE)
         }
@@ -152,6 +158,9 @@ class RssRemoteViewsFactory(
             views.setViewVisibility(R.id.item_date, android.view.View.VISIBLE)
             views.setTextViewText(R.id.item_date, formattedDate)
             views.setTextColor(R.id.item_date, colorSecondary)
+            
+            val dateSize = if (prefs.compactMode) 9f else 10f
+            views.setTextViewTextSize(R.id.item_date, TypedValue.COMPLEX_UNIT_SP, dateSize * prefs.fontScale)
         } else {
             views.setViewVisibility(R.id.item_date, android.view.View.GONE)
         }
@@ -160,6 +169,9 @@ class RssRemoteViewsFactory(
             views.setViewVisibility(R.id.item_source, android.view.View.VISIBLE)
             views.setTextViewText(R.id.item_source, item.source)
             views.setTextColor(R.id.item_source, colorTextSecondary)
+            
+            val sourceSize = if (prefs.compactMode) 10f else 12f
+            views.setTextViewTextSize(R.id.item_source, TypedValue.COMPLEX_UNIT_SP, sourceSize * prefs.fontScale)
         } else {
             views.setViewVisibility(R.id.item_source, android.view.View.GONE)
         }

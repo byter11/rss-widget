@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.util.TypedValue
 import android.widget.RemoteViews
 import android.util.Log
 import androidx.core.net.toUri
@@ -18,6 +19,7 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.*
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlin.math.min
 
 class RssWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(
@@ -95,6 +97,8 @@ class RssWidgetProvider : AppWidgetProvider() {
 
             val showHeader = prefs.showHeaderBar
             views.setTextViewText(R.id.widget_title, prefs.title)
+            views.setTextViewTextSize(R.id.widget_title, TypedValue.COMPLEX_UNIT_SP, 16f * prefs.fontScale)
+            views.setTextViewTextSize(R.id.empty_text, TypedValue.COMPLEX_UNIT_SP, 16f * prefs.fontScale)
 
             Log.d("RssWidgetProvider", "updateAppWidget: lastUpdated=${prefs.lastUpdated}")
             if (showHeader && prefs.lastUpdated > 0) {
@@ -103,6 +107,7 @@ class RssWidgetProvider : AppWidgetProvider() {
                 if (dateStr.isNotEmpty()) {
                     Log.d("RssWidgetProvider", "updateAppWidget: dateStr=$dateStr")
                     views.setTextViewText(R.id.widget_last_updated, "Updated $dateStr")
+                    views.setTextViewTextSize(R.id.widget_last_updated, TypedValue.COMPLEX_UNIT_SP, min(13f, 10f * prefs.fontScale))
                     views.setViewVisibility(R.id.widget_last_updated, android.view.View.VISIBLE)
                 } else {
                     views.setViewVisibility(R.id.widget_last_updated, android.view.View.GONE)

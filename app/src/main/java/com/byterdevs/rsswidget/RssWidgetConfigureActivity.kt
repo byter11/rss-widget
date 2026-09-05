@@ -55,6 +55,8 @@ class RssWidgetConfigureActivity : Activity() {
     private val sliderTrimDescription: Slider get() = findViewById(R.id.slider_trim_description)
     private val transparencySlider: Slider get() = findViewById(R.id.slider_transparency)
     private val labelTransparency: MaterialTextView get() = findViewById(R.id.label_transparency)
+    private val fontScaleSlider: Slider get() = findViewById(R.id.slider_font_scale)
+    private val labelFontScale: MaterialTextView get() = findViewById(R.id.label_font_scale)
     private val sampleButtonsContainer: LinearLayout get() = findViewById(R.id.sample_buttons_container)
     private val sourcesContainer: LinearLayout get() = findViewById(R.id.sources_container)
     private val switchSource: MaterialSwitch get() = findViewById(R.id.switch_source)
@@ -119,6 +121,10 @@ class RssWidgetConfigureActivity : Activity() {
 
         transparencySlider.addOnChangeListener { _, value, _ ->
             labelTransparency.text = getString(R.string.widget_transparency, value.toInt())
+        }
+
+        fontScaleSlider.addOnChangeListener { _, value, _ ->
+            labelFontScale.text = getString(R.string.font_scale, value)
         }
 
         buttonAddFeed.setOnClickListener {
@@ -203,6 +209,7 @@ class RssWidgetConfigureActivity : Activity() {
                 showImages = switchImages.isChecked,
                 descriptionLength = if (switchTrimDescription.isChecked) sliderTrimDescription.value.toInt() else -1,
                 transparency = transparencySlider.value,
+                fontScale = fontScaleSlider.value,
                 showSource = switchSource.isChecked,
                 dateFormat = when (toggleButtonGroup.checkedButtonId) {
                     R.id.btn_date_relative -> "relative"
@@ -442,6 +449,8 @@ class RssWidgetConfigureActivity : Activity() {
         }
         transparencySlider.value = prefs.transparency
         labelTransparency.text = getString(R.string.widget_transparency, transparencySlider.value.toInt())
+        fontScaleSlider.value = prefs.fontScale
+        labelFontScale.text = getString(R.string.font_scale, fontScaleSlider.value)
         switchSource.isChecked = prefs.showSource
         val dateBtnId = when (prefs.dateFormat) {
             "relative" -> R.id.btn_date_relative
@@ -479,6 +488,7 @@ data class WidgetPrefs(
     val showImages: Boolean,
     val descriptionLength: Int,
     val transparency: Float,
+    val fontScale: Float = 1.0f,
     val showSource: Boolean,
     val dateFormat: String,
     val updateInterval: Int,
@@ -506,6 +516,7 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         showImages = prefs.getBoolean(widgetPrefKey(appWidgetId, "images"), false),
         descriptionLength = prefs.getInt(widgetPrefKey(appWidgetId, "description_length"), -1),
         transparency = prefs.getFloat(widgetPrefKey(appWidgetId, "transparency"), 100f),
+        fontScale = prefs.getFloat(widgetPrefKey(appWidgetId, "font_scale"), 1.0f),
         showSource = prefs.getBoolean(widgetPrefKey(appWidgetId, "source"), urls.size > 1),
         dateFormat = prefs.getString(widgetPrefKey(appWidgetId, "date_format"), "relative")
             ?: "relative",
@@ -531,6 +542,7 @@ fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
         putBoolean(widgetPrefKey(appWidgetId, "description"), prefs.showDescription)
         putBoolean(widgetPrefKey(appWidgetId, "images"), prefs.showImages)
         putFloat(widgetPrefKey(appWidgetId, "transparency"), prefs.transparency)
+        putFloat(widgetPrefKey(appWidgetId, "font_scale"), prefs.fontScale)
         putBoolean(widgetPrefKey(appWidgetId, "source"), prefs.showSource)
         putString(widgetPrefKey(appWidgetId, "date_format"), prefs.dateFormat)
         putInt(widgetPrefKey(appWidgetId, "update_interval"), prefs.updateInterval)
@@ -564,6 +576,7 @@ fun Context.deleteWidgetPrefs(appWidgetId: Int) {
         remove(widgetPrefKey(appWidgetId, "description"))
         remove(widgetPrefKey(appWidgetId, "images"))
         remove(widgetPrefKey(appWidgetId, "transparency"))
+        remove(widgetPrefKey(appWidgetId, "font_scale"))
         remove(widgetPrefKey(appWidgetId, "source"))
         remove(widgetPrefKey(appWidgetId, "date_format"))
         remove(widgetPrefKey(appWidgetId, "update_interval"))

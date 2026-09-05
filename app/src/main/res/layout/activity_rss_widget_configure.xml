@@ -125,6 +125,24 @@
                 android:valueFrom="0"
                 android:valueTo="100" />
 
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/label_font_scale"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp"
+                android:text="@string/font_scale"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slider_font_scale"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:stepSize="0.1"
+                android:value="1.0"
+                android:valueFrom="0.5"
+                android:valueTo="2.0" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

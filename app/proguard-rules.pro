@@ -5,17 +5,45 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ROME (RSS/Atom library) - Uses heavy reflection and dynamic module loading
+-keep class com.rometools.rome.** { *; }
+-keep interface com.rometools.rome.** { *; }
+-dontwarn com.rometools.rome.**
+# ROME modules
+-keep class com.rometools.modules.** { *; }
+-dontwarn com.rometools.modules.**
+# JDOM is used by ROME
+-keep class org.jdom2.** { *; }
+-dontwarn org.jdom2.**
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# PrettyTime
+-keep class org.ocpsoft.prettytime.** { *; }
+-dontwarn org.ocpsoft.prettytime.**
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Room
+-keepclassmembers class * {
+  @androidx.room.Database *;
+  @androidx.room.Dao *;
+  @androidx.room.Entity *;
+}
+-keep class androidx.room.RoomDatabase
+-dontwarn androidx.room.**
+
+# WorkManager
+-keep class * extends androidx.work.ListenableWorker {
+    <init>(android.content.Context, androidx.work.WorkerParameters);
+}
+
+# Kotlin Parcelize
+-keepnames class * implements android.os.Parcelable
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final ** CREATOR;
+}
+
+# Keep the RssItem data class in RssRemoteViewsFactory as it might be used in Intents/RemoteViews
+-keep class com.byterdevs.rsswidget.RssRemoteViewsFactory$RssItem { *; }
+
+# General optimization settings
+-optimizationpasses 5
+-allowaccessmodification
+-dontpreverify

@@ -60,10 +60,13 @@ class RssWidgetUpdateWorker(
     private fun fetchRssItems(appWidgetId: Int, rssUrl: String, prefs: WidgetPrefs): List<RssItemEntity> {
         return try {
             val feed = fetchFeedWithRetry(rssUrl)
-            val feedTitle = feed.title?.trim() ?: ""
+            val rawFeedTitle = feed.title?.trim() ?: ""
+            val feedTitle = HtmlCompat.fromHtml(rawFeedTitle, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
 
             feed.entries.map { entry ->
-                val title = entry.title ?: "No Title"
+                val rawTitle = entry.title ?: "No Title"
+                val title = HtmlCompat.fromHtml(rawTitle, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
+
                 val link = entry.link ?: ""
                 val rawDescription = entry.description?.value
                     ?: entry.contents.firstOrNull()?.value

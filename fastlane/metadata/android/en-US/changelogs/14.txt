@@ -1,2 +1,5 @@
-- Option for font scaling.
-- Parsing HTML in titles.
+- Added option to scale widget font.
+- Implemented parsing HTML in titles.
+- Enabled R8 minification and obfuscation to improve app security and performance.
+- Reduced app size through resource shrinking.
+- Fixed a security vulnerability.

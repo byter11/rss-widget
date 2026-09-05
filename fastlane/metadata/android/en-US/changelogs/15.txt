@@ -1,3 +1,0 @@
-- Enabled R8 minification and obfuscation to improve app security and performance.
-- Reduced app size through resource shrinking.
-- Fixed a security vulnerability and improved feed parsing in recent versions.

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<journey name="Styling and Typography Journey" description="Verify customizable typography with serif/monospace font families, custom title and description font colors, and reload button visibility toggle">
+    <actions>
+        <!-- Test Font Family Selection (#26) -->
+        <action>Select font family "Serif" from the typography spinner</action>
+        <action>Verify font family selection reflects in the widget preview</action>
+
+        <!-- Test Font Colors (#22) -->
+        <action>Open title font color picker and select a custom color (e.g., Red or Blue)</action>
+        <action>Verify title color indicator updates to selected color</action>
+        <action>Open description font color picker and select a custom color (e.g., Green or Amber)</action>
+        <action>Verify description color indicator updates to selected color</action>
+
+        <!-- Test Reload Button Toggle (#5) -->
+        <action>Verify the "Show reload button" toggle is enabled by default</action>
+        <action>Toggle off the "Show reload button" switch</action>
+
+        <!-- Apply Configuration & Verify Widget Rendering -->
+        <action>Save the widget configuration</action>
+        <action>Verify the widget header reload button is hidden</action>
+        <action>Verify feed articles display with the chosen serif font family and custom title/description colors</action>
+    </actions>
+</journey>

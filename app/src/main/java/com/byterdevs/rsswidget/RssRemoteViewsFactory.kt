@@ -30,6 +30,18 @@ fun Context.getColorResCompat(@AttrRes id: Int): Int {
     return ContextCompat.getColor(this, colorRes)
 }
 
+private fun applyFont(text: CharSequence, fontFamily: String): CharSequence {
+    if (fontFamily.isEmpty() || fontFamily == "sans-serif") return text
+    return android.text.SpannableString(text).apply {
+        setSpan(
+            android.text.style.TypefaceSpan(fontFamily),
+            0,
+            length,
+            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+    }
+}
+
 class RssRemoteViewsFactory(
     private val context: Context,
     private val appWidgetId: Int
@@ -113,16 +125,16 @@ class RssRemoteViewsFactory(
         val colorSecondary = themedContext.getColorResCompat(android.R.attr.colorSecondary)
         val colorTextSecondary = themedContext.getColorResCompat(android.R.attr.textColorSecondary)
 
-        views.setTextViewText(R.id.item_title, item.title)
-        views.setTextColor(R.id.item_title, colorTitle)
+        views.setTextViewText(R.id.item_title, applyFont(item.title, prefs.fontFamily))
+        views.setTextColor(R.id.item_title, prefs.titleColor ?: colorTitle)
         
         val titleSize = if (prefs.compactMode) 13f else 15f
         views.setTextViewTextSize(R.id.item_title, TypedValue.COMPLEX_UNIT_SP, titleSize * prefs.fontScale)
 
         if((prefs.showDescription || error) && item.description.isNotEmpty()) {
             views.setViewVisibility(R.id.item_description, android.view.View.VISIBLE)
-            views.setTextViewText(R.id.item_description, item.description)
-            views.setTextColor(R.id.item_description, colorDesc)
+            views.setTextViewText(R.id.item_description, applyFont(item.description, prefs.fontFamily))
+            views.setTextColor(R.id.item_description, prefs.descColor ?: colorDesc)
             
             val descSize = if (prefs.compactMode) 11f else 12f
             views.setTextViewTextSize(R.id.item_description, TypedValue.COMPLEX_UNIT_SP, descSize * prefs.fontScale)
@@ -156,7 +168,7 @@ class RssRemoteViewsFactory(
         val formattedDate = DateUtils.formatDate(item.date, prefs.dateFormat)
         if (formattedDate.isNotEmpty()) {
             views.setViewVisibility(R.id.item_date, android.view.View.VISIBLE)
-            views.setTextViewText(R.id.item_date, formattedDate)
+            views.setTextViewText(R.id.item_date, applyFont(formattedDate, prefs.fontFamily))
             views.setTextColor(R.id.item_date, colorSecondary)
             
             val dateSize = if (prefs.compactMode) 9f else 10f
@@ -167,7 +179,7 @@ class RssRemoteViewsFactory(
         
         if (prefs.showSource && item.source.isNotEmpty()) {
             views.setViewVisibility(R.id.item_source, android.view.View.VISIBLE)
-            views.setTextViewText(R.id.item_source, item.source)
+            views.setTextViewText(R.id.item_source, applyFont(item.source, prefs.fontFamily))
             views.setTextColor(R.id.item_source, colorTextSecondary)
             
             val sourceSize = if (prefs.compactMode) 10f else 12f

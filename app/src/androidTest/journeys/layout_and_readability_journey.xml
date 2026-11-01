@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<journey name="Layout and Readability Journey" description="Verify title readability in compact mode, stabilized image scrolling, and image placement toggles">
+    <actions>
+        <!-- Test Compact Mode Title Readability (#24) -->
+        <action>Enable the "Compact mode" switch</action>
+        <action>Enable the "Show images" switch</action>
+        <action>Verify that feed items display thumbnail images and article titles wrap across multiple lines</action>
+
+        <!-- Test Image Placement Option (#25) -->
+        <action>Verify that by default, thumbnails appear on the left side of the title</action>
+        <action>Enable the "Place image on right" switch</action>
+        <action>Tap "Add" or save widget configuration</action>
+        <action>Verify that in the widget, thumbnail images are positioned on the right side of the text block</action>
+
+        <!-- Test Standard Layout Image Height Stability (#20) -->
+        <action>Open widget settings and disable "Compact mode"</action>
+        <action>Verify that standard layout feed articles display images with fixed height constraints (160dp)</action>
+        <action>Scroll down through the feed items and scroll back up</action>
+        <action>Verify that scrolling is smooth and no jumping or skipping occurs</action>
+    </actions>
+</journey>

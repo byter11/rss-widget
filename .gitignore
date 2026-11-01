@@ -54,3 +54,4 @@ obj/
 *.ipr
 *~
 *.swp
+app/release/

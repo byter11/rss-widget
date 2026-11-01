@@ -51,6 +51,7 @@ class RssWidgetConfigureActivity : Activity() {
     private val switchShowHeaderBar: MaterialSwitch get() = findViewById(R.id.switch_show_header_bar)
     private val switchDescription: MaterialSwitch get() = findViewById(R.id.switch_description)
     private val switchImages: MaterialSwitch get() = findViewById(R.id.switch_images)
+    private val switchImageOnRight: MaterialSwitch get() = findViewById(R.id.switch_image_on_right)
     private val switchTrimDescription: MaterialSwitch get() = findViewById(R.id.switch_trim_description)
     private val sliderTrimDescription: Slider get() = findViewById(R.id.slider_trim_description)
     private val transparencySlider: Slider get() = findViewById(R.id.slider_transparency)
@@ -207,6 +208,7 @@ class RssWidgetConfigureActivity : Activity() {
                 maxItems = slider.value.toInt(),
                 showDescription = switchDescription.isChecked,
                 showImages = switchImages.isChecked,
+                imageOnRight = switchImageOnRight.isChecked,
                 descriptionLength = if (switchTrimDescription.isChecked) sliderTrimDescription.value.toInt() else -1,
                 transparency = transparencySlider.value,
                 fontScale = fontScaleSlider.value,
@@ -436,6 +438,7 @@ class RssWidgetConfigureActivity : Activity() {
         labelMaxItems.text = getString(R.string.max_items_to_display, prefs.maxItems)
         switchDescription.isChecked = prefs.showDescription
         switchImages.isChecked = prefs.showImages
+        switchImageOnRight.isChecked = prefs.imageOnRight
         switchDimRead.isChecked = prefs.dimReadItems
         if (prefs.showDescription) {
             switchTrimDescription.visibility = View.VISIBLE
@@ -486,6 +489,7 @@ data class WidgetPrefs(
     val maxItems: Int,
     val showDescription: Boolean,
     val showImages: Boolean,
+    val imageOnRight: Boolean = false,
     val descriptionLength: Int,
     val transparency: Float,
     val fontScale: Float = 1.0f,
@@ -514,6 +518,7 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         maxItems = prefs.getInt(widgetPrefKey(appWidgetId, "max"), 20),
         showDescription = prefs.getBoolean(widgetPrefKey(appWidgetId, "description"), false),
         showImages = prefs.getBoolean(widgetPrefKey(appWidgetId, "images"), false),
+        imageOnRight = prefs.getBoolean(widgetPrefKey(appWidgetId, "image_on_right"), false),
         descriptionLength = prefs.getInt(widgetPrefKey(appWidgetId, "description_length"), -1),
         transparency = prefs.getFloat(widgetPrefKey(appWidgetId, "transparency"), 100f),
         fontScale = prefs.getFloat(widgetPrefKey(appWidgetId, "font_scale"), 1.0f),
@@ -541,6 +546,7 @@ fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
         putInt(widgetPrefKey(appWidgetId, "description_length"), prefs.descriptionLength)
         putBoolean(widgetPrefKey(appWidgetId, "description"), prefs.showDescription)
         putBoolean(widgetPrefKey(appWidgetId, "images"), prefs.showImages)
+        putBoolean(widgetPrefKey(appWidgetId, "image_on_right"), prefs.imageOnRight)
         putFloat(widgetPrefKey(appWidgetId, "transparency"), prefs.transparency)
         putFloat(widgetPrefKey(appWidgetId, "font_scale"), prefs.fontScale)
         putBoolean(widgetPrefKey(appWidgetId, "source"), prefs.showSource)
@@ -575,6 +581,7 @@ fun Context.deleteWidgetPrefs(appWidgetId: Int) {
         remove(widgetPrefKey(appWidgetId, "description_length"))
         remove(widgetPrefKey(appWidgetId, "description"))
         remove(widgetPrefKey(appWidgetId, "images"))
+        remove(widgetPrefKey(appWidgetId, "image_on_right"))
         remove(widgetPrefKey(appWidgetId, "transparency"))
         remove(widgetPrefKey(appWidgetId, "font_scale"))
         remove(widgetPrefKey(appWidgetId, "source"))

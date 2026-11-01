@@ -42,6 +42,7 @@ class RssWidgetConfigureActivity : Activity() {
     private val themeToggleGroup: MaterialButtonToggleGroup get() = findViewById(R.id.theme_toggle_group)
     private val addButton: MaterialButton get() = findViewById(R.id.button_add)
     private val titleEdit: TextInputEditText get() = findViewById(R.id.edit_widget_title)
+    private val titleInputLayout: com.google.android.material.textfield.TextInputLayout get() = findViewById(R.id.title_input_layout)
 
     private val slider: Slider get() = findViewById(R.id.slider_max_items)
     private val labelMaxItems: MaterialTextView get() = findViewById(R.id.label_max_items)
@@ -109,6 +110,10 @@ class RssWidgetConfigureActivity : Activity() {
         setResult(RESULT_CANCELED)
         setContentView(R.layout.activity_rss_widget_configure)
 
+        findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)?.setNavigationOnClickListener {
+            finish()
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.root_layout)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -134,10 +139,6 @@ class RssWidgetConfigureActivity : Activity() {
                 buttonAddFeed.text = getString(R.string.add_feed)
                 urlInput.setText(url)
             }
-            btn.setLines(2)
-            btn.maxLines = 2
-            btn.setStrokeColorResource(android.R.color.darker_gray)
-            btn.strokeWidth = resources.getDimensionPixelSize(R.dimen.sample_button_stroke_width)
             sampleButtonsContainer.addView(btn)
         }
 
@@ -191,6 +192,7 @@ class RssWidgetConfigureActivity : Activity() {
         }
 
         switchShowHeaderBar.setOnCheckedChangeListener { _, isChecked ->
+            titleInputLayout.visibility = if (isChecked) View.VISIBLE else View.GONE
             titleEdit.visibility = if (isChecked) View.VISIBLE else View.GONE
             switchShowRefreshButton.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
@@ -558,6 +560,7 @@ class RssWidgetConfigureActivity : Activity() {
         activeHoursSpinner.setSelection(activeHoursIdx)
         openLinkSpinner.setSelection(prefs.readerType.ordinal)
         switchShowHeaderBar.isChecked = prefs.showHeaderBar
+        titleInputLayout.visibility = if (switchShowHeaderBar.isChecked) View.VISIBLE else View.GONE
         titleEdit.visibility = if (switchShowHeaderBar.isChecked) View.VISIBLE else View.GONE
         switchShowRefreshButton.visibility = if (switchShowHeaderBar.isChecked) View.VISIBLE else View.GONE
         switchShowRefreshButton.isChecked = prefs.showRefreshButton

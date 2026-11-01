@@ -78,6 +78,7 @@ class RssWidgetConfigureActivity : Activity() {
 
     private val urls = mutableSetOf<String>()
     private val feedColors = mutableMapOf<String, Int?>()
+    private var editingUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,6 +107,8 @@ class RssWidgetConfigureActivity : Activity() {
             ) as MaterialButton
             btn.text = label
             btn.setOnClickListener {
+                editingUrl = null
+                buttonAddFeed.text = getString(R.string.add_feed)
                 urlInput.setText(url)
             }
             btn.setLines(2)
@@ -128,9 +131,18 @@ class RssWidgetConfigureActivity : Activity() {
         }
 
         buttonAddFeed.setOnClickListener {
-            val url = urlInput.text?.toString()?.trim() ?: ""
+            val rawUrl = urlInput.text?.toString().orEmpty()
+            val url = UrlUtils.sanitizeUrl(rawUrl)
             if (url.isNotEmpty()) {
+                val previousUrl = editingUrl
+                if (previousUrl != null && previousUrl != url) {
+                    urls.remove(previousUrl)
+                    val color = feedColors.remove(previousUrl)
+                    if (color != null) feedColors[url] = color
+                }
                 urls.add(url)
+                editingUrl = null
+                buttonAddFeed.text = getString(R.string.add_feed)
                 urlInput.setText("")
                 refreshSourcesList()
             }
@@ -184,9 +196,16 @@ class RssWidgetConfigureActivity : Activity() {
         openLinkSpinner.adapter = linkAdapter
 
         addButton.setOnClickListener {
-            val currentUrl = urlInput.text?.toString()?.trim() ?: ""
+            val currentUrl = UrlUtils.sanitizeUrl(urlInput.text?.toString().orEmpty())
             if (currentUrl.isNotEmpty()) {
+                val previousUrl = editingUrl
+                if (previousUrl != null && previousUrl != currentUrl) {
+                    urls.remove(previousUrl)
+                    val color = feedColors.remove(previousUrl)
+                    if (color != null) feedColors[currentUrl] = color
+                }
                 urls.add(currentUrl)
+                editingUrl = null
             }
             val title = titleEdit.text?.toString()?.trim().orEmpty()
             if (urls.isEmpty()) {
@@ -256,7 +275,19 @@ class RssWidgetConfigureActivity : Activity() {
             val colorIndicator = view.findViewById<View>(R.id.view_color_indicator)
 
             urlText.text = source
+            urlText.setOnClickListener {
+                editingUrl = source
+                buttonAddFeed.text = getString(R.string.update_feed)
+                urlInput.setText(source)
+                urlInput.requestFocus()
+                urlInput.setSelection(source.length)
+            }
             btnDelete.setOnClickListener {
+                if (editingUrl == source) {
+                    editingUrl = null
+                    buttonAddFeed.text = getString(R.string.add_feed)
+                    urlInput.setText("")
+                }
                 urls.remove(source)
                 feedColors.remove(source)
                 refreshSourcesList()

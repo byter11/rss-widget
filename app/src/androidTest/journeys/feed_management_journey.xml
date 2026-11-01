@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<journey name="Feed Management Journey" description="Verify auto-prepending https:// to feed URLs and editing URLs on click">
+    <actions>
+        <!-- Test Auto-prepending https:// (#28) -->
+        <action>Type "hnrss.org/frontpage" into the "RSS Feed URL" input field</action>
+        <action>Tap "Add Feed"</action>
+        <action>Verify that "https://hnrss.org/frontpage" is displayed in the feed sources list</action>
+        <action>Verify that the "RSS Feed URL" input field is now empty</action>
+
+        <!-- Test Editing Feed URL on Click (#27) -->
+        <action>Tap the feed item "https://hnrss.org/frontpage" in the feed sources list</action>
+        <action>Verify that the "RSS Feed URL" input field contains "https://hnrss.org/frontpage"</action>
+        <action>Verify that the button text changes to "Update Feed"</action>
+        <action>Clear the input field and type "https://hnrss.org/newest"</action>
+        <action>Tap "Update Feed"</action>
+        <action>Verify that "https://hnrss.org/newest" is displayed in the sources list and "https://hnrss.org/frontpage" is replaced</action>
+        <action>Verify that the button text resets to "Add Feed"</action>
+    </actions>
+</journey>

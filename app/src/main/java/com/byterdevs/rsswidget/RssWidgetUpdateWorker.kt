@@ -41,6 +41,12 @@ class RssWidgetUpdateWorker(
         val hardRefresh = inputData.getBoolean("hardRefresh", false)
         Log.d("RssWidgetUpdateWorker", "doWork: hardRefresh=$hardRefresh")
 
+        val prefs = applicationContext.getWidgetPrefs(appWidgetId)
+        if (!hardRefresh && !isWithinActiveHours(prefs)) {
+            Log.d("RssWidgetUpdateWorker", "Skipping background refresh outside active hours (${prefs.activeHoursStart} to ${prefs.activeHoursEnd})")
+            return Result.success()
+        }
+
         val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
         val db = RssDatabase.getInstance(applicationContext)
         val dao = db.rssItemDao()
@@ -174,6 +180,42 @@ class RssWidgetUpdateWorker(
     }
 
     companion object {
+        private val IMG_REGEX = Regex("""<img[^>]+src\s*=\s*['"]([^'"]+)['"]""", RegexOption.IGNORE_CASE)
+
+        fun sanitizeImageUrl(url: String?): String? {
+            if (url.isNullOrBlank()) return null
+            val trimmed = url.trim()
+            if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+                return null
+            }
+            try {
+                for (param in listOf("url", "target", "u", "dest", "src", "img")) {
+                    val pattern = Regex("""[?&]$param=([^&]+)""", RegexOption.IGNORE_CASE)
+                    val match = pattern.find(trimmed)
+                    if (match != null) {
+                        val encoded = match.groupValues[1]
+                        val decoded = java.net.URLDecoder.decode(encoded, "UTF-8").trim()
+                        if (decoded.startsWith("http://") || decoded.startsWith("https://")) {
+                            return decoded
+                        }
+                    }
+                }
+            } catch (_: Exception) {}
+            return trimmed
+        }
+
+        fun isWithinActiveHours(
+            prefs: WidgetPrefs,
+            currentHour: Int = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+        ): Boolean {
+            if (prefs.activeHoursStart < 0 || prefs.activeHoursEnd < 0) return true
+            return if (prefs.activeHoursStart <= prefs.activeHoursEnd) {
+                currentHour in prefs.activeHoursStart..prefs.activeHoursEnd
+            } else {
+                currentHour >= prefs.activeHoursStart || currentHour <= prefs.activeHoursEnd
+            }
+        }
+
         fun clearAllImagesForWidget(context: Context, appWidgetId: Int) {
             val files = WidgetThumbnailProvider.cacheDir(context).listFiles() ?: return
             Log.d("RssWidgetUpdateWorker", "clearAllImagesForWidget: deleting all cached images for widget $appWidgetId")
@@ -299,9 +341,20 @@ class RssWidgetUpdateWorker(
     }
 
     private fun getImageUrl(entry: SyndEntry): String? {
-        return bestMediaContent(entry)
-            ?: bestThumbnail(entry)
-            ?: enclosureImage(entry)
+        return sanitizeImageUrl(
+            bestMediaContent(entry)
+                ?: bestThumbnail(entry)
+                ?: enclosureImage(entry)
+                ?: htmlImage(entry)
+        )
+    }
+
+    private fun htmlImage(entry: SyndEntry): String? {
+        val desc = entry.description?.value
+        val content = entry.contents.firstOrNull()?.value
+        val html = desc ?: content ?: return null
+        val match = IMG_REGEX.find(html) ?: return null
+        return match.groupValues[1].trim()
     }
 
     private fun bestMediaContent(entry: SyndEntry): String? {
@@ -344,11 +397,19 @@ class RssWidgetUpdateWorker(
 
     private fun enclosureImage(entry: SyndEntry): String? {
         for (enclosure in entry.enclosures) {
-            if (enclosure.url?.startsWith("http") == true && enclosure.type.startsWith("image/")) {
-                return enclosure.url
+            val url = enclosure.url ?: continue
+            val type = enclosure.type ?: ""
+            if (url.startsWith("http") && (type.startsWith("image/") || isImageExtension(url))) {
+                return url
             }
         }
         return null
+    }
+
+    private fun isImageExtension(url: String): Boolean {
+        val cleanUrl = url.substringBefore('?').lowercase()
+        return cleanUrl.endsWith(".jpg") || cleanUrl.endsWith(".jpeg") ||
+                cleanUrl.endsWith(".png") || cleanUrl.endsWith(".webp") || cleanUrl.endsWith(".gif")
     }
 
     fun updateRssFeed(appWidgetId: Int, dao: RssItemDao) = runBlocking {

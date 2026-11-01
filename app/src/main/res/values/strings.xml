@@ -62,4 +62,23 @@
     <string name="read_filter_show">Showing read items</string>
     <string name="read_filter_dim">Dimming read items</string>
     <string name="read_filter_hide">Hiding read items</string>
+    <string name="widget_configuration">Widget Settings</string>
+    <string name="section_feeds">Feeds &amp; Sources</string>
+    <string name="section_feeds_desc">Add RSS or Atom feeds and customize widget title</string>
+    <string name="section_appearance">Appearance &amp; Style</string>
+    <string name="section_appearance_desc">Theme, typography, density, and colors</string>
+    <string name="section_content">Content &amp; Layout</string>
+    <string name="section_content_desc">Summary text, media, layout, and article limit</string>
+    <string name="section_sync">Sync &amp; Behavior</string>
+    <string name="section_sync_desc">Update schedule, active hours, and link actions</string>
+    <string name="sample_feeds_label">Suggested feeds</string>
+    <string name="save_settings">Save Settings</string>
+    <string name="compact_mode_desc">Dense row layout with smaller paddings</string>
+    <string name="dim_read_items_desc">Dim articles once opened in reader</string>
+    <string name="show_header_bar_desc">Display top bar with widget title and actions</string>
+    <string name="show_refresh_button_desc">Show manual refresh button in header</string>
+    <string name="description_desc">Display article summary or snippet</string>
+    <string name="images_desc">Show article thumbnail pictures</string>
+    <string name="image_on_right_desc">Position image on the right side</string>
+    <string name="show_article_source_desc">Show feed source name above article</string>
 </resources>

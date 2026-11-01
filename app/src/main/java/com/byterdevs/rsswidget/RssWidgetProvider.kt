@@ -96,7 +96,22 @@ class RssWidgetProvider : AppWidgetProvider() {
             )
 
             val showHeader = prefs.showHeaderBar
-            views.setTextViewText(R.id.widget_title, prefs.title)
+            val titleText = if (prefs.fontFamily.isNotEmpty() && prefs.fontFamily != "sans-serif") {
+                android.text.SpannableString(prefs.title).apply {
+                    setSpan(
+                        android.text.style.TypefaceSpan(prefs.fontFamily),
+                        0,
+                        length,
+                        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+            } else {
+                prefs.title
+            }
+            views.setTextViewText(R.id.widget_title, titleText)
+            if (prefs.titleColor != null) {
+                views.setTextColor(R.id.widget_title, prefs.titleColor)
+            }
             views.setTextViewTextSize(R.id.widget_title, TypedValue.COMPLEX_UNIT_SP, 16f * prefs.fontScale)
             views.setTextViewTextSize(R.id.empty_text, TypedValue.COMPLEX_UNIT_SP, 16f * prefs.fontScale)
 
@@ -119,6 +134,7 @@ class RssWidgetProvider : AppWidgetProvider() {
             views.setViewVisibility(R.id.control_bar, if (showHeader) android.view.View.VISIBLE else android.view.View.GONE)
             views.setViewVisibility(R.id.widget_title, if (showHeader) android.view.View.VISIBLE else android.view.View.GONE)
             views.setViewVisibility(R.id.header_divider, if (showHeader) android.view.View.VISIBLE else android.view.View.GONE)
+            views.setViewVisibility(R.id.btn_refresh, if (showHeader && prefs.showRefreshButton) android.view.View.VISIBLE else android.view.View.GONE)
 
             val intent = Intent(context, RssRemoteViewsService::class.java)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

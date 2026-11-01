@@ -65,7 +65,16 @@ class RssWidgetConfigureActivity : Activity() {
             R.id.toggle_button_group
         )
     private val updateIntervalSpinner: Spinner get() = findViewById(R.id.spinner_update_interval)
+    private val activeHoursSpinner: Spinner get() = findViewById(R.id.spinner_active_hours)
     private val openLinkSpinner: Spinner get() = findViewById(R.id.spinner_open_link_with)
+
+    private val activeHoursOptions = listOf(
+        Pair(R.string.active_hours_all_day, -1 to -1),
+        Pair(R.string.active_hours_daytime, 6 to 22),
+        Pair(R.string.active_hours_standard, 7 to 23),
+        Pair(R.string.active_hours_work, 8 to 20),
+        Pair(R.string.active_hours_evening, 8 to 22)
+    )
 
     private val urlSamples = listOf(
         Pair("Reddit", "https://www.reddit.com/r/news/.rss"),
@@ -173,6 +182,14 @@ class RssWidgetConfigureActivity : Activity() {
         intervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         updateIntervalSpinner.adapter = intervalAdapter
 
+        val activeHoursAdapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            activeHoursOptions.map { getString(it.first) }
+        )
+        activeHoursAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        activeHoursSpinner.adapter = activeHoursAdapter
+
         val linkOpeningOptions = listOf(
             getString(R.string.open_links_internal),
             getString(R.string.open_links_reader),
@@ -200,6 +217,7 @@ class RssWidgetConfigureActivity : Activity() {
                 else -> ThemeMode.SYSTEM
             }
 
+            val selectedActiveHours = activeHoursOptions[activeHoursSpinner.selectedItemPosition].second
             val oldPrefs = applicationContext.getWidgetPrefs(appWidgetId)
             val prefs = WidgetPrefs(
                 urls = urls,
@@ -223,7 +241,10 @@ class RssWidgetConfigureActivity : Activity() {
                 themeMode = themeMode,
                 compactMode = switchCompactMode.isChecked,
                 feedColors = feedColors.toMap(),
-                lastUpdated = oldPrefs.lastUpdated
+                lastUpdated = oldPrefs.lastUpdated,
+                readFilterMode = oldPrefs.readFilterMode,
+                activeHoursStart = selectedActiveHours.first,
+                activeHoursEnd = selectedActiveHours.second
             )
 
             applicationContext.setWidgetPrefs(appWidgetId, prefs)
@@ -460,6 +481,10 @@ class RssWidgetConfigureActivity : Activity() {
         toggleButtonGroup.check(dateBtnId)
         val intervalIdx = intervalValues.indexOf(prefs.updateInterval)
         updateIntervalSpinner.setSelection(intervalIdx)
+        val activeHoursIdx = activeHoursOptions.indexOfFirst {
+            it.second.first == prefs.activeHoursStart && it.second.second == prefs.activeHoursEnd
+        }.coerceAtLeast(0)
+        activeHoursSpinner.setSelection(activeHoursIdx)
         openLinkSpinner.setSelection(prefs.readerType.ordinal)
         switchShowHeaderBar.isChecked = prefs.showHeaderBar
         titleEdit.visibility = if (switchShowHeaderBar.isChecked) View.VISIBLE else View.GONE
@@ -478,6 +503,12 @@ enum class ReaderType {
     INTERNAL,
     READER,
     EXTERNAL
+}
+
+enum class ReadFilterMode {
+    SHOW,
+    DIM,
+    HIDE
 }
 
 data class WidgetPrefs(
@@ -499,6 +530,9 @@ data class WidgetPrefs(
     val compactMode: Boolean = false,
     val lastUpdated: Long = 0L,
     val feedColors: Map<String, Int?> = emptyMap(),
+    val readFilterMode: ReadFilterMode = ReadFilterMode.SHOW,
+    val activeHoursStart: Int = -1,
+    val activeHoursEnd: Int = -1,
 )
 
 fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
@@ -508,6 +542,13 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         val color = prefs.getInt(widgetPrefKey(appWidgetId, "color_$url"), Int.MIN_VALUE)
         if (color == Int.MIN_VALUE) null else color
     }
+    val savedFilterOrdinal = prefs.getInt(widgetPrefKey(appWidgetId, "read_filter_mode"), -1)
+    val readFilterMode = if (savedFilterOrdinal in ReadFilterMode.entries.indices) {
+        ReadFilterMode.entries[savedFilterOrdinal]
+    } else {
+        if (prefs.getBoolean(widgetPrefKey(appWidgetId, "dim_read"), false)) ReadFilterMode.DIM else ReadFilterMode.SHOW
+    }
+
     return WidgetPrefs(
         urls = urls,
         title = prefs.getString(widgetPrefKey(appWidgetId, "title"), "HomeFeed").orEmpty(),
@@ -527,7 +568,10 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         themeMode = ThemeMode.entries[prefs.getInt(widgetPrefKey(appWidgetId, "theme_mode"), 0)],
         compactMode = prefs.getBoolean(widgetPrefKey(appWidgetId, "compact_mode"), false),
         lastUpdated = prefs.getLong(widgetPrefKey(appWidgetId, "last_updated"), 0L),
-        feedColors = feedColors
+        feedColors = feedColors,
+        readFilterMode = readFilterMode,
+        activeHoursStart = prefs.getInt(widgetPrefKey(appWidgetId, "active_hours_start"), -1),
+        activeHoursEnd = prefs.getInt(widgetPrefKey(appWidgetId, "active_hours_end"), -1)
     )
 }
 
@@ -552,6 +596,9 @@ fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
         putInt(widgetPrefKey(appWidgetId, "theme_mode"), prefs.themeMode.ordinal)
         putBoolean(widgetPrefKey(appWidgetId, "compact_mode"), prefs.compactMode)
         putLong(widgetPrefKey(appWidgetId, "last_updated"), prefs.lastUpdated)
+        putInt(widgetPrefKey(appWidgetId, "read_filter_mode"), prefs.readFilterMode.ordinal)
+        putInt(widgetPrefKey(appWidgetId, "active_hours_start"), prefs.activeHoursStart)
+        putInt(widgetPrefKey(appWidgetId, "active_hours_end"), prefs.activeHoursEnd)
 
         // Clear old colors? Or just overwrite.
         prefs.feedColors.forEach { (url, color) ->
@@ -586,6 +633,9 @@ fun Context.deleteWidgetPrefs(appWidgetId: Int) {
         remove(widgetPrefKey(appWidgetId, "theme_mode"))
         remove(widgetPrefKey(appWidgetId, "compact_mode"))
         remove(widgetPrefKey(appWidgetId, "last_updated"))
+        remove(widgetPrefKey(appWidgetId, "read_filter_mode"))
+        remove(widgetPrefKey(appWidgetId, "active_hours_start"))
+        remove(widgetPrefKey(appWidgetId, "active_hours_end"))
 
         prefs.urls.forEach { url ->
             remove(widgetPrefKey(appWidgetId, "color_$url"))

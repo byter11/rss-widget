@@ -26,7 +26,11 @@ class BrowserLauncherActivity : AppCompatActivity() {
         if(appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) return
 
         ReadItemsStore.markRead(this, appWidgetId, link)
-        val readerType = applicationContext.getWidgetPrefs(appWidgetId).readerType
+        val prefs = applicationContext.getWidgetPrefs(appWidgetId)
+        if (prefs.readFilterMode != ReadFilterMode.SHOW) {
+            AppWidgetManager.getInstance(this).notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list)
+        }
+        val readerType = prefs.readerType
 
         when (readerType) {
             ReaderType.INTERNAL -> openInternal(appWidgetId, link, false)

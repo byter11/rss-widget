@@ -214,6 +214,14 @@
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_image_on_right"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="12dp"
+                android:text="@string/image_on_right"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/switch_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

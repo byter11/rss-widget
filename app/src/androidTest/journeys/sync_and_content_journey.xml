@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<journey name="Sync and Content Journey" description="Verify active hours refresh scheduling, HTML image parsing &amp; URL sanitation, and toggling show/dim/hide read articles via header filter button">
+    <actions>
+        <!-- Test Scheduled Refresh / Active Hours (#6) -->
+        <action>Select active refresh schedule "08:00 – 20:00 (Work hours)" from the active hours spinner</action>
+        <action>Save the widget configuration</action>
+
+        <!-- Test Content & Image Parsing (#14, #4) -->
+        <action>Verify widget displays articles with thumbnail images parsed from feed content</action>
+
+        <!-- Test Read Items Filter Button (Show / Dim / Hide) (#23) -->
+        <action>Verify the read filter button is displayed next to the refresh button on the widget header</action>
+        <action>Tap an article to mark it as read</action>
+        <action>Return to the home screen</action>
+        <action>Tap the read filter button to switch to Dim mode and verify read item is dimmed</action>
+        <action>Tap the read filter button again to switch to Hide mode and verify read item is hidden</action>
+        <action>Tap the read filter button again to switch back to Show mode and verify read item reappears</action>
+
+        <!-- Verify Configuration Persistence -->
+        <action>Reopen widget settings and verify active refresh schedule remains preserved</action>
+    </actions>
+</journey>

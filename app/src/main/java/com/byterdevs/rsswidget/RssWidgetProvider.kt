@@ -73,10 +73,29 @@ class RssWidgetProvider : AppWidgetProvider() {
                 WorkManager.getInstance(context).enqueue(workRequest)
                 Log.d("RssWidgetProvider", "onReceive: Enqueued worker for refresh")
             }
+        } else if (intent.action == ACTION_TOGGLE_READ_FILTER) {
+            val appWidgetId = intent.getIntExtra(
+                AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID
+            )
+            Log.d("RssWidgetProvider", "onReceive: ACTION_TOGGLE_READ_FILTER id=$appWidgetId")
+            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                val prefs = context.getWidgetPrefs(appWidgetId)
+                val nextMode = when (prefs.readFilterMode) {
+                    ReadFilterMode.SHOW -> ReadFilterMode.DIM
+                    ReadFilterMode.DIM -> ReadFilterMode.HIDE
+                    ReadFilterMode.HIDE -> ReadFilterMode.SHOW
+                }
+                val updatedPrefs = prefs.copy(readFilterMode = nextMode)
+                context.setWidgetPrefs(appWidgetId, updatedPrefs)
+                updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId)
+                AppWidgetManager.getInstance(context).notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_list)
+            }
         }
     }
 
     companion object {
+        const val ACTION_TOGGLE_READ_FILTER = "com.byterdevs.rsswidget.ACTION_TOGGLE_READ_FILTER"
+
         fun updateAppWidget(
             context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int
         ) {
@@ -164,6 +183,27 @@ class RssWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             )
             views.setOnClickPendingIntent(R.id.btn_refresh, refreshPendingIntent)
+
+            val (readFilterIcon, readFilterDesc) = when (prefs.readFilterMode) {
+                ReadFilterMode.SHOW -> Pair(R.drawable.ic_read_show, R.string.read_filter_show)
+                ReadFilterMode.DIM -> Pair(R.drawable.ic_read_dim, R.string.read_filter_dim)
+                ReadFilterMode.HIDE -> Pair(R.drawable.ic_read_hide, R.string.read_filter_hide)
+            }
+            views.setImageViewResource(R.id.btn_read_filter, readFilterIcon)
+            views.setContentDescription(R.id.btn_read_filter, context.getString(readFilterDesc))
+            views.setViewVisibility(R.id.btn_read_filter, if (showHeader) android.view.View.VISIBLE else android.view.View.GONE)
+
+            val readFilterIntent = Intent(context, RssWidgetProvider::class.java).apply {
+                action = ACTION_TOGGLE_READ_FILTER
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            }
+            val readFilterPendingIntent = PendingIntent.getBroadcast(
+                context,
+                appWidgetId + 200000,
+                readFilterIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.btn_read_filter, readFilterPendingIntent)
 
             val settingsIntent = Intent(context, RssWidgetConfigureActivity::class.java).apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)

@@ -4,6 +4,7 @@
     <string name="refresh">Refresh</string>
     <string name="description">Show description</string>
     <string name="images">Show images</string>
+    <string name="image_on_right">Place image on right</string>
     <string name="rss_feed">Widget Header</string>
     <string name="header">Custom header</string>
     <string name="done">Done</string>

@@ -44,4 +44,11 @@
     <string name="show_colored_bar">Show side accents</string>
     <string name="none">None</string>
     <string name="font_scale">Font scale: %1$.1f</string>
+    <string name="font_family">Font family</string>
+    <string name="show_refresh_button">Show reload button</string>
+    <string name="title_color">Title font color</string>
+    <string name="description_color">Description font color</string>
+    <string name="font_default">Default (Sans)</string>
+    <string name="font_serif">Serif</string>
+    <string name="font_monospace">Monospace</string>
 </resources>

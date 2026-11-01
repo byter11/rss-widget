@@ -49,6 +49,7 @@ class RssWidgetConfigureActivity : Activity() {
     private val switchDimRead: MaterialSwitch get() = findViewById(R.id.dim_read)
     private val switchCompactMode: MaterialSwitch get() = findViewById(R.id.switch_compact_mode)
     private val switchShowHeaderBar: MaterialSwitch get() = findViewById(R.id.switch_show_header_bar)
+    private val switchShowRefreshButton: MaterialSwitch get() = findViewById(R.id.switch_show_refresh_button)
     private val switchDescription: MaterialSwitch get() = findViewById(R.id.switch_description)
     private val switchImages: MaterialSwitch get() = findViewById(R.id.switch_images)
     private val switchImageOnRight: MaterialSwitch get() = findViewById(R.id.switch_image_on_right)
@@ -58,6 +59,9 @@ class RssWidgetConfigureActivity : Activity() {
     private val labelTransparency: MaterialTextView get() = findViewById(R.id.label_transparency)
     private val fontScaleSlider: Slider get() = findViewById(R.id.slider_font_scale)
     private val labelFontScale: MaterialTextView get() = findViewById(R.id.label_font_scale)
+    private val fontFamilySpinner: Spinner get() = findViewById(R.id.spinner_font_family)
+    private val viewTitleColorIndicator: View get() = findViewById(R.id.view_title_color_indicator)
+    private val viewDescColorIndicator: View get() = findViewById(R.id.view_desc_color_indicator)
     private val sampleButtonsContainer: LinearLayout get() = findViewById(R.id.sample_buttons_container)
     private val sourcesContainer: LinearLayout get() = findViewById(R.id.sources_container)
     private val switchSource: MaterialSwitch get() = findViewById(R.id.switch_source)
@@ -67,6 +71,15 @@ class RssWidgetConfigureActivity : Activity() {
         )
     private val updateIntervalSpinner: Spinner get() = findViewById(R.id.spinner_update_interval)
     private val openLinkSpinner: Spinner get() = findViewById(R.id.spinner_open_link_with)
+
+    private var selectedTitleColor: Int? = null
+    private var selectedDescColor: Int? = null
+
+    private val fontFamilies = listOf(
+        Pair("Default (Sans)", "sans-serif"),
+        Pair("Serif", "serif"),
+        Pair("Monospace", "monospace")
+    )
 
     private val urlSamples = listOf(
         Pair("Reddit", "https://www.reddit.com/r/news/.rss"),
@@ -170,6 +183,26 @@ class RssWidgetConfigureActivity : Activity() {
 
         switchShowHeaderBar.setOnCheckedChangeListener { _, isChecked ->
             titleEdit.visibility = if (isChecked) View.VISIBLE else View.GONE
+            switchShowRefreshButton.visibility = if (isChecked) View.VISIBLE else View.GONE
+        }
+
+        val fontNames = fontFamilies.map { it.first }
+        val fontAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, fontNames)
+        fontAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        fontFamilySpinner.adapter = fontAdapter
+
+        viewTitleColorIndicator.setOnClickListener {
+            showColorPickerDialog(getString(R.string.title_color), selectedTitleColor) { color ->
+                selectedTitleColor = color
+                updateColorIndicator(viewTitleColorIndicator, color)
+            }
+        }
+
+        viewDescColorIndicator.setOnClickListener {
+            showColorPickerDialog(getString(R.string.description_color), selectedDescColor) { color ->
+                selectedDescColor = color
+                updateColorIndicator(viewDescColorIndicator, color)
+            }
         }
 
         val intervalOptions = listOf(
@@ -221,6 +254,7 @@ class RssWidgetConfigureActivity : Activity() {
             }
 
             val oldPrefs = applicationContext.getWidgetPrefs(appWidgetId)
+            val selectedFontFamily = fontFamilies[fontFamilySpinner.selectedItemPosition].second
             val prefs = WidgetPrefs(
                 urls = urls,
                 title = title,
@@ -244,7 +278,11 @@ class RssWidgetConfigureActivity : Activity() {
                 themeMode = themeMode,
                 compactMode = switchCompactMode.isChecked,
                 feedColors = feedColors.toMap(),
-                lastUpdated = oldPrefs.lastUpdated
+                lastUpdated = oldPrefs.lastUpdated,
+                fontFamily = selectedFontFamily,
+                titleColor = selectedTitleColor,
+                descColor = selectedDescColor,
+                showRefreshButton = switchShowRefreshButton.isChecked
             )
 
             applicationContext.setWidgetPrefs(appWidgetId, prefs)
@@ -299,7 +337,7 @@ class RssWidgetConfigureActivity : Activity() {
             updateColorIndicator(colorIndicator, currentColor)
 
             colorIndicator.setOnClickListener {
-                showColorPickerDialog(source) { selectedColor ->
+                showColorPickerDialog(source.removePrefix("https://").removePrefix("http://").take(40), currentColor) { selectedColor ->
                     feedColors[source] = selectedColor
                     updateColorIndicator(colorIndicator, selectedColor)
                 }
@@ -330,9 +368,8 @@ class RssWidgetConfigureActivity : Activity() {
         0xFF795548.toInt(), 0xFF9E9E9E.toInt(), 0xFF607D8B.toInt(), 0xFF000000.toInt()
     )
 
-    private fun showColorPickerDialog(url: String, onColorSelected: (Int?) -> Unit) {
+    private fun showColorPickerDialog(title: String, currentColor: Int?, onColorSelected: (Int?) -> Unit) {
         val bottomSheet = BottomSheetDialog(this)
-        val currentColor = feedColors[url]
         
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -342,7 +379,7 @@ class RssWidgetConfigureActivity : Activity() {
 
         // Header
         container.addView(TextView(this).apply {
-            text = url.removePrefix("https://").removePrefix("http://").take(40)
+            text = title
             androidx.core.widget.TextViewCompat.setTextAppearance(this, com.google.android.material.R.style.TextAppearance_Material3_TitleMedium)
             setPadding(0, 0, 0, (16 * resources.displayMetrics.density).toInt())
         })
@@ -497,6 +534,17 @@ class RssWidgetConfigureActivity : Activity() {
         openLinkSpinner.setSelection(prefs.readerType.ordinal)
         switchShowHeaderBar.isChecked = prefs.showHeaderBar
         titleEdit.visibility = if (switchShowHeaderBar.isChecked) View.VISIBLE else View.GONE
+        switchShowRefreshButton.visibility = if (switchShowHeaderBar.isChecked) View.VISIBLE else View.GONE
+        switchShowRefreshButton.isChecked = prefs.showRefreshButton
+
+        val fontIdx = fontFamilies.indexOfFirst { it.second == prefs.fontFamily }.coerceAtLeast(0)
+        fontFamilySpinner.setSelection(fontIdx)
+
+        selectedTitleColor = prefs.titleColor
+        updateColorIndicator(viewTitleColorIndicator, selectedTitleColor)
+
+        selectedDescColor = prefs.descColor
+        updateColorIndicator(viewDescColorIndicator, selectedDescColor)
 
         val themeBtnId = when (prefs.themeMode) {
             ThemeMode.LIGHT -> R.id.btn_theme_light
@@ -534,6 +582,10 @@ data class WidgetPrefs(
     val compactMode: Boolean = false,
     val lastUpdated: Long = 0L,
     val feedColors: Map<String, Int?> = emptyMap(),
+    val fontFamily: String = "sans-serif",
+    val titleColor: Int? = null,
+    val descColor: Int? = null,
+    val showRefreshButton: Boolean = true,
 )
 
 fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
@@ -543,6 +595,11 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         val color = prefs.getInt(widgetPrefKey(appWidgetId, "color_$url"), Int.MIN_VALUE)
         if (color == Int.MIN_VALUE) null else color
     }
+    val titleColorVal = prefs.getInt(widgetPrefKey(appWidgetId, "title_color"), Int.MIN_VALUE)
+    val titleColor = if (titleColorVal == Int.MIN_VALUE) null else titleColorVal
+    val descColorVal = prefs.getInt(widgetPrefKey(appWidgetId, "desc_color"), Int.MIN_VALUE)
+    val descColor = if (descColorVal == Int.MIN_VALUE) null else descColorVal
+
     return WidgetPrefs(
         urls = urls,
         title = prefs.getString(widgetPrefKey(appWidgetId, "title"), "HomeFeed").orEmpty(),
@@ -563,7 +620,11 @@ fun Context.getWidgetPrefs(appWidgetId: Int): WidgetPrefs {
         themeMode = ThemeMode.entries[prefs.getInt(widgetPrefKey(appWidgetId, "theme_mode"), 0)],
         compactMode = prefs.getBoolean(widgetPrefKey(appWidgetId, "compact_mode"), false),
         lastUpdated = prefs.getLong(widgetPrefKey(appWidgetId, "last_updated"), 0L),
-        feedColors = feedColors
+        feedColors = feedColors,
+        fontFamily = prefs.getString(widgetPrefKey(appWidgetId, "font_family"), "sans-serif") ?: "sans-serif",
+        titleColor = titleColor,
+        descColor = descColor,
+        showRefreshButton = prefs.getBoolean(widgetPrefKey(appWidgetId, "show_refresh_button"), true),
     )
 }
 
@@ -589,6 +650,18 @@ fun Context.setWidgetPrefs(appWidgetId: Int, prefs: WidgetPrefs) {
         putInt(widgetPrefKey(appWidgetId, "theme_mode"), prefs.themeMode.ordinal)
         putBoolean(widgetPrefKey(appWidgetId, "compact_mode"), prefs.compactMode)
         putLong(widgetPrefKey(appWidgetId, "last_updated"), prefs.lastUpdated)
+        putString(widgetPrefKey(appWidgetId, "font_family"), prefs.fontFamily)
+        if (prefs.titleColor != null) {
+            putInt(widgetPrefKey(appWidgetId, "title_color"), prefs.titleColor)
+        } else {
+            remove(widgetPrefKey(appWidgetId, "title_color"))
+        }
+        if (prefs.descColor != null) {
+            putInt(widgetPrefKey(appWidgetId, "desc_color"), prefs.descColor)
+        } else {
+            remove(widgetPrefKey(appWidgetId, "desc_color"))
+        }
+        putBoolean(widgetPrefKey(appWidgetId, "show_refresh_button"), prefs.showRefreshButton)
 
         // Clear old colors? Or just overwrite.
         prefs.feedColors.forEach { (url, color) ->
@@ -624,6 +697,10 @@ fun Context.deleteWidgetPrefs(appWidgetId: Int) {
         remove(widgetPrefKey(appWidgetId, "theme_mode"))
         remove(widgetPrefKey(appWidgetId, "compact_mode"))
         remove(widgetPrefKey(appWidgetId, "last_updated"))
+        remove(widgetPrefKey(appWidgetId, "font_family"))
+        remove(widgetPrefKey(appWidgetId, "title_color"))
+        remove(widgetPrefKey(appWidgetId, "desc_color"))
+        remove(widgetPrefKey(appWidgetId, "show_refresh_button"))
 
         prefs.urls.forEach { url ->
             remove(widgetPrefKey(appWidgetId, "color_$url"))

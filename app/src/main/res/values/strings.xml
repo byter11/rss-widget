@@ -34,6 +34,7 @@
     <string name="dim_read_items">Dim read items</string>
     <string name="show_header_bar">Show Header</string>
     <string name="add_feed">Add Feed</string>
+    <string name="update_feed">Update Feed</string>
     <string name="theme">Theme</string>
     <string name="system">System</string>
     <string name="light">Light</string>

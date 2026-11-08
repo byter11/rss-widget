@@ -192,6 +192,8 @@ class RssWidgetProvider : AppWidgetProvider() {
             views.setImageViewResource(R.id.btn_read_filter, readFilterIcon)
             views.setContentDescription(R.id.btn_read_filter, context.getString(readFilterDesc))
             views.setViewVisibility(R.id.btn_read_filter, if (showHeader) android.view.View.VISIBLE else android.view.View.GONE)
+            val readFilterAlpha = if (prefs.readFilterMode == ReadFilterMode.DIM) 90 else 255
+            views.setInt(R.id.btn_read_filter, "setImageAlpha", readFilterAlpha)
 
             val readFilterIntent = Intent(context, RssWidgetProvider::class.java).apply {
                 action = ACTION_TOGGLE_READ_FILTER

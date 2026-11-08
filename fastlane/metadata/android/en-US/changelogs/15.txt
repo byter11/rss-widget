@@ -1,0 +1,7 @@
+- Revamped configuration screen with Material 3 section cards and sticky actions.
+- Added quick read filter button on widget header (Show / Dim / Hide read articles).
+- Added active hours sync schedule to limit background refreshes during off-hours.
+- Added auto-prepend "https://" and click-to-edit for feed URLs.
+- Added font family and custom title/description color options.
+- Added option to position images on the right or left in compact mode.
+- Improved HTML image extraction and widget scrolling reliability.

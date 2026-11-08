@@ -1,15 +1,26 @@
-<b>HomeFeed</b> is a customizable RSS feed widget.
+<b>HomeFeed</b> is a clean, modern, and highly customizable RSS and Atom feed widget for your Android home screen. Stay informed with news, articles, and updates from your favorite sources without constantly opening apps.
 
 <b>Key Features:</b>
 
-• <b>Multi-Feed Support:</b> Consolidate multiple RSS feeds into a single, unified widget for a centralized news experience.
-• <b>Integrated Reader Mode:</b> Access article content through a distraction-free popup, allowing for quick reading without switching applications.
-• <b>Rich Media Support:</b> High-quality image integration enhances the visual presentation of your feeds.
-• <b>Material You Design:</b> Full support for Material Design 3 and dynamic coloring, automatically adapting to your system wallpaper and theme.
+• <b>Multi-Feed Support:</b> Aggregate multiple RSS and Atom feeds into a single, unified stream on your home screen.
+• <b>Distraction-Free Reader:</b> Read article content instantly in an integrated reader popup, or open full articles in your browser or Chrome Custom Tabs.
+• <b>Rich Media & Thumbnails:</b> Automatically extracts high-resolution article images and media enclosures.
+• <b>Material You Design:</b> Full support for Material 3 and dynamic theming, automatically adapting to your system wallpaper and dark/light mode.
 
-<b>Customization & Controls:</b>
+<b>Customization & Layout:</b>
 
-• <b>Visual Flexibility:</b> Adjust widget opacity, customize headers, and toggle the visibility of article descriptions or sources to match your preference.
-• <b>Reading Management:</b> Optional dimming for read articles and flexible timestamp formats (relative or absolute).
-• <b>Advanced Refreshing:</b> Set custom background refresh intervals or use a manual refresh button, which can be hidden for a more minimalist look.
-• <b>Data Persistence:</b> Built for reliability with local data storage and optimized network handling.
+• <b>Layout Modes:</b> Choose between full image cards or a space-efficient Compact Mode with customizable thumbnail positioning (left or right).
+• <b>Typography & Colors:</b> Pick your preferred font family (Sans-serif, Serif, Monospace) and customize title and description text colors to suit your home screen aesthetic.
+• <b>Widget Appearance:</b> Adjust background opacity, corner radius, item spacing, and header visibility.
+• <b>Article Controls:</b> Toggle descriptions, trim length, or show article source labels.
+
+<b>Reading Management:</b>
+
+• <b>Read Status Filtering:</b> Convenient in-widget header control lets you toggle between showing, dimming, or hiding read articles.
+• <b>Tap-to-Read:</b> Track what you've read effortlessly with automatic status updates.
+
+<b>Smart Sync & Performance:</b>
+
+• <b>Battery-Friendly Sync:</b> Set automatic background refresh intervals and define active hours to prevent syncing while you sleep.
+• <b>Quick Manual Refresh:</b> On-demand refresh button right on the widget header.
+• <b>Privacy-First & Offline:</b> Feeds and articles are cached locally on your device with zero tracking and minimal resource usage.

@@ -213,14 +213,6 @@
             </LinearLayout>
 
             <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/dim_read"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="12dp"
-                android:text="@string/dim_read_items"
-                android:textAppearance="?attr/textAppearanceBodyLarge" />
-
-            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/switch_compact_mode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

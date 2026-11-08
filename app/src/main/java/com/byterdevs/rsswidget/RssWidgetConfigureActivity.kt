@@ -46,7 +46,6 @@ class RssWidgetConfigureActivity : Activity() {
     private val slider: Slider get() = findViewById(R.id.slider_max_items)
     private val labelMaxItems: MaterialTextView get() = findViewById(R.id.label_max_items)
 
-    private val switchDimRead: MaterialSwitch get() = findViewById(R.id.dim_read)
     private val switchCompactMode: MaterialSwitch get() = findViewById(R.id.switch_compact_mode)
     private val switchShowHeaderBar: MaterialSwitch get() = findViewById(R.id.switch_show_header_bar)
     private val switchDescription: MaterialSwitch get() = findViewById(R.id.switch_description)
@@ -235,7 +234,6 @@ class RssWidgetConfigureActivity : Activity() {
                     else -> "off"
                 },
                 updateInterval = intervalValues[updateIntervalSpinner.selectedItemPosition],
-                dimReadItems = switchDimRead.isChecked,
                 readerType = ReaderType.entries[openLinkSpinner.selectedItemPosition],
                 showHeaderBar = switchShowHeaderBar.isChecked,
                 themeMode = themeMode,
@@ -457,7 +455,6 @@ class RssWidgetConfigureActivity : Activity() {
         labelMaxItems.text = getString(R.string.max_items_to_display, prefs.maxItems)
         switchDescription.isChecked = prefs.showDescription
         switchImages.isChecked = prefs.showImages
-        switchDimRead.isChecked = prefs.dimReadItems
         if (prefs.showDescription) {
             switchTrimDescription.visibility = View.VISIBLE
         }
@@ -523,7 +520,7 @@ data class WidgetPrefs(
     val showSource: Boolean,
     val dateFormat: String,
     val updateInterval: Int,
-    val dimReadItems: Boolean,
+    val dimReadItems: Boolean = false,
     val readerType: ReaderType,
     val showHeaderBar: Boolean = true,
     val themeMode: ThemeMode,

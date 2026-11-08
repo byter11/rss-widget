@@ -114,6 +114,7 @@ object ThemeUtils {
         // Icons
         val iconColor = themedContext.getColorResCompat(android.R.attr.textColorSecondary)
         views.setInt(R.id.btn_settings, "setColorFilter", iconColor)
+        views.setInt(R.id.btn_read_filter, "setColorFilter", iconColor)
         views.setInt(R.id.btn_refresh, "setColorFilter", iconColor)
     }
 }

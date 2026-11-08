@@ -1,42 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="?attr/materialCardViewOutlinedStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingVertical="8dp"
-    android:paddingHorizontal="4dp"
-    android:background="?attr/selectableItemBackground"
-    android:layout_marginBottom="4dp">
+    android:layout_marginBottom="6dp"
+    app:cardCornerRadius="10dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="?attr/colorOutlineVariant"
+    app:contentPadding="0dp">
 
-    <TextView
-        android:id="@+id/text_url"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:ellipsize="middle"
-        android:maxLines="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:paddingHorizontal="12dp"
-        android:fontFamily="sans-serif-medium"
-        android:textAppearance="?attr/textAppearanceBodyMedium" />
+        android:paddingVertical="8dp">
 
-    <View
-        android:id="@+id/view_color_indicator"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginStart="12dp"
-        android:elevation="2dp"
-        android:clickable="true"
-        android:focusable="true" />
+        <TextView
+            android:id="@+id/text_url"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="middle"
+            android:maxLines="1"
+            android:fontFamily="sans-serif-medium"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
 
-    <ImageButton
-        android:id="@+id/btn_delete"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/app_name"
-        android:src="@drawable/ic_delete"
-        app:tint="?attr/colorError"
-        android:alpha="0.8" />
-</LinearLayout>
+        <View
+            android:id="@+id/view_color_indicator"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="8dp"
+            android:elevation="1dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <ImageButton
+            android:id="@+id/btn_delete"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_delete"
+            app:tint="?attr/colorError"
+            android:alpha="0.8" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

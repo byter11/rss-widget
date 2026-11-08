@@ -44,9 +44,10 @@
         <ImageView
             android:id="@+id/item_image"
             android:layout_width="match_parent"
-            android:layout_height="160dp"
-            android:scaleType="centerCrop"
-            android:adjustViewBounds="false"
+            android:layout_height="wrap_content"
+            android:minHeight="140dp"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:background="@drawable/material_card"
             android:paddingVertical="4dp"
             android:clipToOutline="true"

@@ -98,13 +98,17 @@ class RssRemoteViewsFactory(
         return items.size
     }
 
-    override fun getViewTypeCount(): Int = 2
+    override fun getViewTypeCount(): Int = 3
 
     override fun getViewAt(position: Int): RemoteViews {
         if (position >= items.size) return getLoadingView()
         Log.d("RssRemoteViewsFactory", "getViewAt: pos=$position, compact=${prefs.compactMode}")
         val item = items[position]
-        val layoutRes = if (prefs.compactMode) R.layout.widget_rss_item_compact else R.layout.widget_rss_item
+        val layoutRes = if (prefs.compactMode) {
+            if (prefs.imageOnRight) R.layout.widget_rss_item_compact_right else R.layout.widget_rss_item_compact
+        } else {
+            R.layout.widget_rss_item
+        }
         val views = RemoteViews(context.packageName, layoutRes)
         
         val themedContext = getThemedContextForWidget(context, prefs.themeMode)

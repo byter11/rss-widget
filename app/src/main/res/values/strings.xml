@@ -51,4 +51,15 @@
     <string name="font_default">Default (Sans)</string>
     <string name="font_serif">Serif</string>
     <string name="font_monospace">Monospace</string>
+    <string name="hide_read_articles">Hide read articles</string>
+    <string name="active_hours">Active refresh schedule</string>
+    <string name="active_hours_all_day">All day (Always active)</string>
+    <string name="active_hours_daytime">06:00 – 22:00 (Daytime)</string>
+    <string name="active_hours_standard">07:00 – 23:00 (Standard)</string>
+    <string name="active_hours_work">08:00 – 20:00 (Work hours)</string>
+    <string name="active_hours_evening">08:00 – 22:00 (Evening)</string>
+    <string name="read_filter">Filter read articles</string>
+    <string name="read_filter_show">Showing read items</string>
+    <string name="read_filter_dim">Dimming read items</string>
+    <string name="read_filter_hide">Hiding read items</string>
 </resources>

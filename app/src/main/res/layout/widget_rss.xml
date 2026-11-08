@@ -73,6 +73,18 @@
                     android:alpha="0.7" />
 
                 <ImageButton
+                    android:id="@+id/btn_read_filter"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/read_filter"
+                    android:padding="6dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_read_show"
+                    android:alpha="0.7" />
+
+                <ImageButton
                     android:id="@+id/btn_refresh"
                     android:layout_width="32dp"
                     android:layout_height="32dp"

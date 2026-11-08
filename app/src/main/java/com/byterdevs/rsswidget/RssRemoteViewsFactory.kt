@@ -61,7 +61,12 @@ class RssRemoteViewsFactory(
         val dao = db.rssItemDao()
         try {
             val entities = dao.getItemsForWidget(appWidgetId)
-            val loadedItems = entities.map {
+            val filteredEntities = if (prefs.readFilterMode == ReadFilterMode.HIDE) {
+                entities.filter { !ReadItemsStore.isRead(context, appWidgetId, it.link) }
+            } else {
+                entities
+            }
+            val loadedItems = filteredEntities.map {
                 RssItem(
                     title = it.title,
                     description = it.description,
@@ -200,7 +205,7 @@ class RssRemoteViewsFactory(
             views.setViewVisibility(R.id.item_color_bar, android.view.View.GONE)
         }
 
-        if(prefs.dimReadItems) {
+        if (prefs.readFilterMode == ReadFilterMode.DIM) {
             val isRead = ReadItemsStore.isRead(context, appWidgetId, item.link)
             if (isRead) {
                 val dimColor = context.getColor(com.google.android.material.R.color.material_dynamic_neutral50)

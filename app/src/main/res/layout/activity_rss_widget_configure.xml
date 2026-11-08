@@ -74,6 +74,14 @@
                 android:text="@string/show_header_bar"
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
 
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_show_refresh_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="12dp"
+                android:text="@string/show_refresh_button"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/title_input_layout"
                 android:layout_width="match_parent"
@@ -142,6 +150,75 @@
                 android:value="1.0"
                 android:valueFrom="0.5"
                 android:valueTo="2.0" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="12dp">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/label_font_family"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/font_family"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <Spinner
+                    android:id="@+id/spinner_font_family"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:spinnerMode="dialog" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="12dp">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/title_color"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <View
+                    android:id="@+id/view_title_color_indicator"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:elevation="2dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="12dp">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/description_color"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <View
+                    android:id="@+id/view_desc_color_indicator"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:elevation="2dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
